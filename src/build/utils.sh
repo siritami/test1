@@ -155,11 +155,7 @@ get_apk() {
 			version=$(echo -e "${_versions[*]}" | sed -n "$((attempt + 1))p")
 		fi
 		green_log "[+] Downloading $3 version: $version $5 $6 $7"
-		if [[ $5 == "Bundle" ]]; then
-			local base_apk="$2.apkm"
-		else
-			local base_apk="$2.apk"
-		fi
+		local base_apk="$2"
 		local dl_url=$(dl_apk "https://www.apkmirror.com/apk/$4-${version//./-}-release/" \
 							  "$url_regexp" \
 							  "$base_apk")
@@ -176,7 +172,7 @@ get_apk() {
 		red_log "[-] No more versions to try. Failed download"
 		return 1
 	fi
-	if [[ $5 == "Bundle" ]]; then
+	if [[ $base_apk == "*.apkm" ]]; then
 		green_log "[+] Merge splits apk to standalone apk"
 		java -jar $APKEditor m -i ./download/$2.apkm -o ./download/$2.apk > /dev/null 2>&1
 	fi
