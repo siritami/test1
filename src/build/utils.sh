@@ -104,12 +104,14 @@ get_patches_key() {
 
 # Download apks files from APKMirror:
 _req() {
+    filename=$(basename "$1")
     if [ "$2" = "-" ]; then
         wget -nv -O "$2" --header="$3" "$1" || rm -f "$2"
     else
-        wget -nv -O "./download/$2" --header="$3" "$1" || rm -f "./download/$2"
+        wget -nv -O "./download/$filename" --header="$3" "$1" || rm -f "./download/$filename"
     fi
 }
+
 req() {
     _req "$1" "$2" "User-Agent: Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.6099.231 Mobile Safari/537.36"
 }
