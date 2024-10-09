@@ -31,6 +31,7 @@ on:
           - 'Dropped Patches - indrastorms'
           - 'ReX'
           - 'RVE-rufusin'
+          - 'ChromeXT'
       retry_count:
         description: 'Do not change value below'
         required: false
@@ -420,4 +421,26 @@ jobs:
       - name: Re-run workflow if github connection not stable
         if: always() && steps.patch-Dropped-Patches-indrastorms.outcome == 'skipped' || steps.release-Dropped-Patches-indrastorms.outcome == 'skipped' && env.retry_count < env.max_retries
         uses: ./.github/actions/re-run
-
+  patch_ChromeXT:
+    name: ChromeXT
+    if: ${{ github.event.inputs.org == 'ChromeXT' || inputs.org == 'ChromeXT' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.1.1
+      - name: Preparing to patch
+        uses: ./.github/actions/preparing
+      - name: Check github connection
+        id: check-gh-Dropped-Patches-indrastorms
+        run: bash src/etc/connection.sh
+      - name: Patch apk
+        id: patch-Dropped-Patches-indrastorms
+        if: steps.check-gh-Dropped-Patches-indrastorms.outputs.internet_error == '0'
+        run: bash src/build/ChromeXT.sh
+      - name: Releasing APK files
+        id: release-Dropped-Patches-indrastorms
+        if: steps.check-gh-Dropped-Patches-indrastorms.outputs.internet_error == '0'
+        uses: ./.github/actions/release
+      - name: Re-run workflow if github connection not stable
+        if: always() && steps.patch-Dropped-Patches-indrastorms.outcome == 'skipped' || steps.release-Dropped-Patches-indrastorms.outcome == 'skipped' && env.retry_count < env.max_retries
+        uses: ./.github/actions/re-run
