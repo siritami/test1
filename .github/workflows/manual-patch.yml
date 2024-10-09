@@ -441,6 +441,3 @@ jobs:
         id: release-Dropped-Patches-indrastorms
         if: steps.check-gh-Dropped-Patches-indrastorms.outputs.internet_error == '0'
         uses: ./.github/actions/release
-      - name: Re-run workflow if github connection not stable
-        if: always() && steps.patch-Dropped-Patches-indrastorms.outcome == 'skipped' || steps.release-Dropped-Patches-indrastorms.outcome == 'skipped' && env.retry_count < env.max_retries
-        uses: ./.github/actions/re-run
