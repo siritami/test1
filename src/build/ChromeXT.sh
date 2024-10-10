@@ -2,6 +2,6 @@
 # ChromeXT
 source src/build/utils.sh
 
-dl_gh "JingMatrix" "LSPatch" "latest"
+wget -nv -O "./download/lspatch.jar" --header="User-Agent: Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.6099.231 Mobile Safari/537.36" "https://github.com/JingMatrix/LSPatch/releases/download/0.6/lspatch.jar"
 get_apk "com.chrome.beta" "chrome-beta" "chrome-beta" "google-inc/chrome-beta/chrome-beta" "arm64-v8a"
-eval java -jar lspatch.jar ./download/chrome-beta.apk -d -v -m ./release/ChromeXt-signed.apk --force
+eval java -jar ./download/lspatch.jar ./download/chrome-beta.apk -d -v -m ./release/ChromeXt-signed.apk --force
