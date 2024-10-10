@@ -160,7 +160,7 @@ get_apk() {
 		else
 			local base_apk="$2.apk"
 		fi
-		local dl_url=$(dl_apk "https://www.apkmirror.com/apk/$4-${version//./-}-release/" \
+		local dl_url=$(dl_apk "https://www.apkmirror.com/apk/$4-${version//./-}-3-release/" \
 							  "$url_regexp" \
 							  "$base_apk")
 		if [[ -f "./download/$base_apk" ]]; then
