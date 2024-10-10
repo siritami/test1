@@ -176,7 +176,7 @@ get_apk() {
 		red_log "[-] No more versions to try. Failed download"
 		return 1
 	fi
-	if [[ $5 == "Bundle" ]]; then
+	if [[ $5 == "Bundle" || $5 == "arm64-v8a" ]]; then
 		green_log "[+] Merge splits apk to standalone apk"
 		java -jar $APKEditor m -i ./download/$2.apkm -o ./download/$2.apk > /dev/null 2>&1
 	fi
