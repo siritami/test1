@@ -155,7 +155,7 @@ get_apk() {
 			version=$(echo -e "${_versions[*]}" | sed -n "$((attempt + 1))p")
 		fi
 		green_log "[+] Downloading $3 version: $version $5 $6 $7"
-		if [[ $5 == "Bundle" ]]; then
+		if [[ $5 == "Bundle" || $5 == "arm64-v8a" ]]; then
 			local base_apk="$2.apkm"
 		else
 			local base_apk="$2.apk"
