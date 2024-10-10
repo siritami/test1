@@ -104,14 +104,12 @@ get_patches_key() {
 
 # Download apks files from APKMirror:
 _req() {
-    filename=$(basename "$1")
     if [ "$2" = "-" ]; then
         wget -nv -O "$2" --header="$3" "$1" || rm -f "$2"
     else
-        wget -nv -O "./download/$filename" --header="$3" "$1" || rm -f "./download/$filename"
+        wget -nv -O "./download/$2" --header="$3" "$1" || rm -f "./download/$2"
     fi
 }
-
 req() {
     _req "$1" "$2" "User-Agent: Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.6099.231 Mobile Safari/537.36"
 }
@@ -157,7 +155,11 @@ get_apk() {
 			version=$(echo -e "${_versions[*]}" | sed -n "$((attempt + 1))p")
 		fi
 		green_log "[+] Downloading $3 version: $version $5 $6 $7"
-		local base_apk="$2"
+		if [[ $5 == "Bundle" ]]; then
+			local base_apk="$2.apkm"
+		else
+			local base_apk="$2.apk"
+		fi
 		local dl_url=$(dl_apk "https://www.apkmirror.com/apk/$4-${version//./-}-release/" \
 							  "$url_regexp" \
 							  "$base_apk")
@@ -174,7 +176,7 @@ get_apk() {
 		red_log "[-] No more versions to try. Failed download"
 		return 1
 	fi
-	if [[ $base_apk == "*.apkm" ]]; then
+	if [[ $5 == "Bundle" ]]; then
 		green_log "[+] Merge splits apk to standalone apk"
 		java -jar $APKEditor m -i ./download/$2.apkm -o ./download/$2.apk > /dev/null 2>&1
 	fi
