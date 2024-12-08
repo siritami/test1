@@ -5,7 +5,7 @@ source src/build/utils.sh
 # Download requirements
 revanced_dl(){
 	dl_gh "revanced-patches" "inotia00" "latest"
-	dl_gh "revanced-cli" "revanced" "latest"
+	dl_gh "revanced-cli" "inotia00" "latest"
 }
 
 1() {
