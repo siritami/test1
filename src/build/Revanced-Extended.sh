@@ -4,7 +4,8 @@ source src/build/utils.sh
 
 # Download requirements
 revanced_dl(){
-	dl_gh "revanced-patches revanced-cli" "inotia00" "latest"
+	dl_gh "revanced-patches" "inotia00" "latest"
+	dl_gh "revanced-cli" "revanced" "latest"
 }
 
 1() {
@@ -12,7 +13,7 @@ revanced_dl(){
 	# Patch YouTube:
 	get_patches_key "youtube-revanced-extended"
 	get_apk "com.google.android.youtube" "youtube" "youtube" "google-inc/youtube/youtube"
-	patch "youtube" "revanced-extended" "inotia"
+	patch "youtube" "revanced-extended"
 	# Split architecture Youtube:
 	#for i in {0..3}; do
     #split_arch "youtube-revanced-extended" "youtube-${archs[i]}-revanced-extended" "$(gen_rip_libs ${libs[i]})"
