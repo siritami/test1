@@ -306,7 +306,7 @@ split_arch() {
 	green_log "[+] Splitting $1 to ${archs[i]}:"
 	if [ -f "./release/$1.apk" ]; then
 		eval java -jar revanced-cli*.jar patch \
-		--patch-bundle *.rvp \
+		-p *.rvp \
 		$3 \
 		--keystore=./src/_ks.keystore \
 		--out=./release/$2.apk\

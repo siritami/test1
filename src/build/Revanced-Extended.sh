@@ -14,9 +14,9 @@ revanced_dl(){
 	get_apk "com.google.android.youtube" "youtube" "youtube" "google-inc/youtube/youtube"
 	patch "youtube" "revanced-extended" "inotia"
 	# Split architecture Youtube:
-	for i in {0..3}; do
-    split_arch "youtube-revanced-extended" "youtube-${archs[i]}-revanced-extended" "$(gen_rip_libs ${libs[i]})"
-	done
+	#for i in {0..3}; do
+    #split_arch "youtube-revanced-extended" "youtube-${archs[i]}-revanced-extended" "$(gen_rip_libs ${libs[i]})"
+	#done
 }
 2() {
 	revanced_dl
