@@ -233,7 +233,7 @@ patch() {
 	if [ -f "./download/$1.apk" ]; then
 		local p b m ks a pu opt
 		if [ "$3" = inotia ]; then
-			p="patch " b="-p *.rvp" m="" a="" ks="_ks" pu="--purge=true" opt=""
+			p="patch " b="-p *.rvp" m="" a="" ks="_ks" pu="--purge" opt="--legacy-options $2.json "
 			echo "Patching with Revanced-cli inotia"
 		else
 			if [[ $(ls revanced-cli-*.jar) =~ revanced-cli-([0-9]+) ]]; then
