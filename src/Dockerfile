@@ -1,4 +1,4 @@
-FROM ubuntu:latest
+FROM --platform=linux/amd64 ubuntu:latest
 
 # Install required dependencies
 RUN apt-get update && apt-get install -y \
@@ -15,6 +15,8 @@ WORKDIR /src
 
 # Copy all files into the container
 COPY . .
+
+RUN chmod +x /src/build/Revanced-Extended.sh
 
 # Set the entrypoint to bash
 ENTRYPOINT ["/bin/bash"]
