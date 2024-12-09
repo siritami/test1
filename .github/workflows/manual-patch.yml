@@ -38,6 +38,7 @@ jobs:
         id: patch-rve
         if: steps.check-gh-rve.outputs.internet_error == '0'
         run: |
+          sudo apt-get install -y curl jq wget
           bash src/build/Revanced-Extended.sh
 
       - name: Releasing APK files
