@@ -42,7 +42,12 @@ jobs:
           apt-get install -y curl jq wget
           bash src/build/Revanced-Extended.sh
 
-      - name: Releasing APK files
-        id: release-rve
-        if: steps.check-gh-rve.outputs.internet_error == '0'
-        uses: ./.github/actions/release
+      - name: Release
+        uses: ncipollo/release-action@v1.14.0
+        with:
+          artifacts: |
+            ./release/*.apk
+          name: Revanced & Revanced Extended
+          tag: all
+          body: "hello"
+          allowUpdates: true
