@@ -46,13 +46,13 @@ jobs:
       
       - name: Build Docker Image
         run: |
-          docker build -t patch-env ./src
+          ddocker buildx build --platform linux/amd64 -t patch-env ./src
 
       - name: Run Patching in Docker
         run: |
-          docker run --rm \
-            -v ${{ github.workspace }}/src:/src \
-            patch-env /bin/bash -c "/src/build/Revanced-Extended.sh ${{ matrix.run }}"
+            docker run --rm \
+              -v ${{ github.workspace }}/src:/src \
+              patch-env /bin/bash -c "/src/build/Revanced-Extended.sh ${{ matrix.run }}"
 
       - name: Releasing APK files
         if: success()
