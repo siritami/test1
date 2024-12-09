@@ -39,7 +39,7 @@ jobs:
         if: steps.check-gh-rve.outputs.internet_error == '0'
         run: |
           apk update
-          apk add --no-cache --no-confirm curl jq wget
+          apk add --no-cache --no-interactive curl jq wget
           bash src/build/Revanced-Extended.sh
 
       - name: Release
