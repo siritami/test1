@@ -1,22 +1,32 @@
-FROM --platform=linux/amd64 ubuntu:latest
+# Use an official OpenJDK image as a base
+FROM openjdk:17
 
-# Install required dependencies
-RUN apt-get update && apt-get install -y \
-    bash \
+# Install necessary dependencies
+RUN apt-get update && \
+    apt-get install -y \
+    wget \
     curl \
-    git \
-    openjdk-11-jdk \
     unzip \
-    zip \
-    && apt-get clean
+    bash \
+    jq \
+    git \
+    tar \
+    && rm -rf /var/lib/apt/lists/*
 
-# Set the working directory
-WORKDIR /src
+# Set up working directory
+WORKDIR /workspace
 
-# Copy all files into the container
+# Copy the repository into the container
 COPY . .
 
-RUN chmod +x /src/build/Revanced-Extended.sh
+# Install additional tools (e.g., HTMLQ, APKEditor)
+RUN wget -q -O ./htmlq.tar.gz https://github.com/mgdm/htmlq/releases/latest/download/htmlq-x86_64-linux.tar.gz && \
+    tar -xf "./htmlq.tar.gz" -C "./" && \
+    wget -q -O ./APKEditor.jar https://github.com/REAndroid/APKEditor/releases/download/V1.4.1/APKEditor-1.4.1.jar
 
-# Set the entrypoint to bash
-ENTRYPOINT ["/bin/bash"]
+# Set environment variables
+ENV HTMLQ="./htmlq"
+ENV APKEditor="./APKEditor.jar"
+
+# Set up the entrypoint (optional)
+ENTRYPOINT ["bash"]

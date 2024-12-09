@@ -5,6 +5,7 @@ env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   org_input: ${{ inputs.org }}
   org_event_input: ${{ github.event.inputs.org }}
+
 on:
   workflow_dispatch:
     inputs:
@@ -20,23 +21,37 @@ on:
       org:
         required: true
         type: string
+
 jobs:
   patch_rve:
     name: Patch Revanced Extended Stable
     if: ${{ github.event.inputs.org == 'Revanced Extended' || inputs.org == 'Revanced Extended' }}
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4.2.2
-      - name: Preparing to patch
-        uses: ./.github/actions/preparing
-      - name: Check github connection
+
+      - name: Set up Docker container
+        run: |
+          docker pull openjdk:17
+          docker build -t revanced-patcher -f Dockerfile .
+      
+      - name: Preparing to patch (Run inside Docker)
+        run: |
+          docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace revanced-patcher ./github/actions/preparing.sh
+
+      - name: Check github connection (Run inside Docker)
         id: check-gh-rve
-        run: bash src/etc/connection.sh
-      - name: Patch apk
+        run: |
+          docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace revanced-patcher bash src/etc/connection.sh
+
+      - name: Patch apk (Run inside Docker)
         id: patch-rve
         if: steps.check-gh-rve.outputs.internet_error == '0'
-        run: bash src/build/Revanced-Extended.sh
-      - name: Releasing APK files
+        run: |
+          docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace revanced-patcher bash src/build/Revanced-Extended.sh
+
+      - name: Releasing APK files (Run inside Docker)
         if: success()
         uses: ./.github/actions/release

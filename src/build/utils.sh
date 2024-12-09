@@ -2,13 +2,7 @@
 
 mkdir ./release ./download
 
-#Setup HTMLQ for download apk files
-wget -q -O ./htmlq.tar.gz https://github.com/mgdm/htmlq/releases/latest/download/htmlq-x86_64-linux.tar.gz
-tar -xf "./htmlq.tar.gz" -C "./"
-HTMLQ="./htmlq"
-#Setup APKEditor for install combine split apks
-wget -q -O ./APKEditor.jar https://github.com/REAndroid/APKEditor/releases/download/V1.4.1/APKEditor-1.4.1.jar
-APKEditor="./APKEditor.jar"
+
 
 #################################################
 
