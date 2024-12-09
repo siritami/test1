@@ -36,7 +36,7 @@ jobs:
       - name: Patch apk
         id: patch-rve
         if: steps.check-gh-rve.outputs.internet_error == '0'
-        run: bash src/build/Revanced-Extended.sh ${{ matrix.run }}
+        run: bash src/build/Revanced-Extended.sh
       - name: Releasing APK files
         if: success()
         uses: ./.github/actions/release
