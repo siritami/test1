@@ -35,14 +35,11 @@ jobs:
       - name: Preparing to patch
         uses: ./.github/actions/preparing
 
-      - name: Setup
-        id: setup-rve
+      - name: Setup as Root
         if: steps.check-gh-rve.outputs.internet_error == '0'
         run: |
-          apt-get update && apt-get install -y sudo
-          echo "ALL ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/nopasswd
-          sudo apt-get update && apt-get install -y curl jq wget
-          
+          sudo apt-get update && sudo apt-get install -y curl jq wget
+
       - name: Patch apk in Sandbox
         id: patch-rve
         if: steps.check-gh-rve.outputs.internet_error == '0'
