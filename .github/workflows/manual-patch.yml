@@ -36,15 +36,7 @@ jobs:
         run: |
           docker pull openjdk:17
           docker build -t revanced-patcher -f Dockerfile .
-      
-      - name: Preparing to patch (Run inside Docker)
-        run: |
-          docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace revanced-patcher ./github/actions/preparing.sh
 
-      - name: Check github connection (Run inside Docker)
-        id: check-gh-rve
-        run: |
-          docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace revanced-patcher bash src/etc/connection.sh
 
       - name: Patch apk (Run inside Docker)
         id: patch-rve
