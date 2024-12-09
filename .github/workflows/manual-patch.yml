@@ -38,8 +38,8 @@ jobs:
         id: patch-rve
         if: steps.check-gh-rve.outputs.internet_error == '0'
         run: |
-          apt-get update
-          apt-get install -y curl jq wget
+          apk update
+          apk add --no-cache --no-confirm curl jq wget
           bash src/build/Revanced-Extended.sh
 
       - name: Release
