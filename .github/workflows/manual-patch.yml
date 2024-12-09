@@ -34,7 +34,7 @@ jobs:
 
       - name: Setup Dependencies
         run: |
-          apt-get update && apt-get install -y wget jq unzip openjdk-11-jre
+          apt-get update && apt-get install -y wget jq unzip openjdk-11-jre curl
           mkdir -p /sandbox/workdir && chmod -R 777 /sandbox/workdir
           ln -s /sandbox/workdir ./sandbox
 
