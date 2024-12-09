@@ -1,7 +1,5 @@
-# Use an official OpenJDK image as a base
-FROM openjdk:17
+FROM ubuntu:latest
 
-# Install necessary dependencies
 RUN apt-get update && \
     apt-get install -y \
     wget \
@@ -10,8 +8,8 @@ RUN apt-get update && \
     bash \
     jq \
     git \
-    tar \
-    && rm -rf /var/lib/apt/lists/*
+    tar && \
+    rm -rf /var/lib/apt/lists/*
 
 # Set up working directory
 WORKDIR /workspace
