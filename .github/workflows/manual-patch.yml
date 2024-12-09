@@ -45,7 +45,7 @@ jobs:
         if: steps.check-gh-rve.outputs.internet_error == '0'
         run: |
           chmod +x src/build/Revanced-Extended.sh
-          sudo chmod u-x src/build/Revanced-Extended.sh
+          chmod u-x src/build/Revanced-Extended.sh
           bash src/build/Revanced-Extended.sh
 
       - name: Release
