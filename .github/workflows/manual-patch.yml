@@ -27,7 +27,6 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: ubuntu:20.04
-      options: --user 1001:1001 # Non-root user for additional security
     steps:
       - name: Checkout
         uses: actions/checkout@v4.2.2
