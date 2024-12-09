@@ -5,7 +5,6 @@ env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   org_input: ${{ inputs.org }}
   org_event_input: ${{ github.event.inputs.org }}
-
 on:
   workflow_dispatch:
     inputs:
@@ -21,34 +20,42 @@ on:
       org:
         required: true
         type: string
-
 jobs:
   patch_rve:
-    name: Patch Revanced Extended Stable
+    name: Patch Revanced Extended Stable in Sandbox
     if: ${{ github.event.inputs.org == 'Revanced Extended' || inputs.org == 'Revanced Extended' }}
     runs-on: ubuntu-latest
-
+    container:
+      image: ubuntu:20.04
+      options: --user 1001:1001 # Non-root user for additional security
     steps:
       - name: Checkout
         uses: actions/checkout@v4.2.2
 
-      - name: Set up Docker
-        uses: docker/setup-buildx-action@v2
-        with:
-          version: latest
-
-      - name: Build Docker image
+      - name: Setup Dependencies
         run: |
-          docker build -t revanced-patch-sandbox .
+          apt-get update && apt-get install -y wget jq unzip openjdk-11-jre
+          mkdir -p /sandbox/workdir && chmod -R 777 /sandbox/workdir
+          ln -s /sandbox/workdir ./sandbox
 
-      - name: Run patching inside Docker container
+      - name: Preparing to patch
+        uses: ./.github/actions/preparing
+
+      - name: Check github connection
+        id: check-gh-rve
+        run: bash src/etc/connection.sh
+
+      - name: Patch apk in Sandbox
+        id: patch-rve
+        if: steps.check-gh-rve.outputs.internet_error == '0'
         run: |
-          docker run --rm \
-            -v ${{ github.workspace }}:/workspace \
-            -e GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} \
-            -w /workspace/src/build \
-            revanced-patch-sandbox bash Revanced-Extended.sh
+          cd sandbox
+          bash ../src/build/Revanced-Extended.sh
+        env:
+          SANDBOX_DIR: /sandbox
 
       - name: Releasing APK files
         if: success()
         uses: ./.github/actions/release
+        with:
+          release-dir: sandbox/release
