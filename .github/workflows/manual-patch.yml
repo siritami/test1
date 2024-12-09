@@ -52,8 +52,7 @@ jobs:
         run: |
           docker run --rm \
             -v ${{ github.workspace }}/src:/src \
-            -e INPUT_ORG="${{ inputs.org }}" \
-            patch-env bash /src/build/Revanced-Extended.sh ${{ matrix.run }}
+            patch-env /bin/bash -c "/src/build/Revanced-Extended.sh ${{ matrix.run }}"
 
       - name: Releasing APK files
         if: success()
