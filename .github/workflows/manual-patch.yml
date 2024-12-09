@@ -26,8 +26,7 @@ jobs:
     if: ${{ github.event.inputs.org == 'Revanced Extended' || inputs.org == 'Revanced Extended' }}
     runs-on: ubuntu-latest
     container:
-      image: debian
-      options: --user 1001:1001
+      image: ubuntu:20.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4.2.2
@@ -35,10 +34,18 @@ jobs:
       - name: Preparing to patch
         uses: ./.github/actions/preparing
 
+      - name: Setup
+        id: setup-rve
+        if: steps.check-gh-rve.outputs.internet_error == '0'
+        run: |
+          apt-get update && apt-get install -y curl jq wget
+          
       - name: Patch apk in Sandbox
         id: patch-rve
         if: steps.check-gh-rve.outputs.internet_error == '0'
         run: |
+          chmod +x src/build/Revanced-Extended.sh
+          sudo chmod u-x src/build/Revanced-Extended.sh
           bash src/build/Revanced-Extended.sh
 
       - name: Release
