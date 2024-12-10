@@ -43,11 +43,11 @@ jobs:
           distribution: 'zulu'
           java-version: '21'
           
-      - name: Patch apk
+      - name: Run script on ARM64 container
         id: patch-rve
         if: steps.check-gh-rve.outputs.internet_error == '0'
         run: |
-          bash src/build/Revanced-Extended.sh
+          docker run --rm --platform linux/arm64 -v $PWD:/workspace -w /workspace ubuntu:20.04 bash src/build/Revanced-Extended.sh
 
       - name: Release
         uses: ncipollo/release-action@v1.14.0
