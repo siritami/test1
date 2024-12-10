@@ -50,7 +50,7 @@ jobs:
           docker run --rm --platform linux/arm64 -v $PWD:/workspace -w /workspace ubuntu:20.04 bash -c "
             apt-get update && \
             apt-get install -y wget curl jq && \
-            apt install gnupg ca-certificates curl && \
+            apt install gnupg ca-certificates -y && \
             curl -s https://repos.azul.com/azul-repo.key | sudo gpg --dearmor -o /usr/share/keyrings/azul.gpg && \
             echo "deb [signed-by=/usr/share/keyrings/azul.gpg] https://repos.azul.com/zulu/deb stable main" | sudo tee /etc/apt/sources.list.d/zulu.list && \
             apt install zulu21-jdk -y && \
