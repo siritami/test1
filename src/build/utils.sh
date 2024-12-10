@@ -2,10 +2,10 @@
 
 mkdir ./release ./download
 
-#Setup HTMLQ for download apk files
-wget -q -O ./htmlq.tar.gz https://github.com/ericchiang/pup/releases/download/v0.4.0/pup_v0.4.0_linux_amd64.zip
-tar -xf "./htmlq.tar.gz" -C "./"
-HTMLQ="./htmlq"
+#Setup pup for download apk files
+wget -q -O ./pup.zip https://github.com/ericchiang/pup/releases/download/v0.4.0/pup_v0.4.0_linux_amd64.zip
+unzip "./pup.zip" -d "./" > /dev/null 2>&1
+pup="./pup"
 #Setup APKEditor for install combine split apks
 wget -q -O ./APKEditor.jar https://github.com/REAndroid/APKEditor/releases/download/V1.4.1/APKEditor-1.4.1.jar
 APKEditor="./APKEditor.jar"
@@ -152,8 +152,10 @@ dl_apk() {
 	else
 		url="https://www.apkmirror.com$(req "$url" - | tr '\n' ' ' | sed -n "s/href=\"/@/g; s;.*${regexp}.*;\1;p")"
 	fi
-	url=$(req "$url" - | $HTMLQ --base https://www.apkmirror.com --attribute href ".downloadButton")
-   	url=$(req "$url" - | $HTMLQ --base https://www.apkmirror.com --attribute href "span > a[rel = nofollow]")
+	url="https://www.apkmirror.com$(req "$url" - | grep -oP 'class="[^"]*downloadButton[^"]*".*?href="\K[^"]+')"
+   	url="https://www.apkmirror.com$(req "$url" - | grep -oP 'id="download-link".*?href="\K[^"]+')"
+	#url="https://www.apkmirror.com$(req "$url" - | $pup -p --charset utf-8 'a.downloadButton attr{href}')"
+   	#url="https://www.apkmirror.com$(req "$url" - | $pup -p --charset utf-8 'a#download-link attr{href}')"
 	req "$url" "$output"
 }
 get_apk() {
@@ -233,7 +235,7 @@ patch() {
 	if [ -f "./download/$1.apk" ]; then
 		local p b m ks a pu opt
 		if [ "$3" = inotia ]; then
-			p="patch " b="-p *.rvp" m="" a="" ks="_ks" pu="--purge" opt="--legacy-options $2.json "
+			p="patch " b="-p *.rvp" m="" a="" ks="_ks" pu="--purge=true" opt=""
 			echo "Patching with Revanced-cli inotia"
 		else
 			if [[ $(ls revanced-cli-*.jar) =~ revanced-cli-([0-9]+) ]]; then
@@ -293,26 +295,4 @@ split_editor() {
 
     green_log "[+] Merge splits apk to standalone apk"
     java -jar $APKEditor m -i ./download/$2 -o ./download/$2.apk > /dev/null 2>&1
-}
-# Split architectures using Revanced CLI, created by inotia00
-archs=("arm64-v8a" "armeabi-v7a" "x86_64" "x86")
-libs=("armeabi-v7a x86_64 x86" "arm64-v8a x86_64 x86" "armeabi-v7a arm64-v8a x86" "armeabi-v7a arm64-v8a x86_64")
-gen_rip_libs() {
-	for lib in $@; do
-		echo -n "--rip-lib "$lib" "
-	done
-}
-split_arch() {
-	green_log "[+] Splitting $1 to ${archs[i]}:"
-	if [ -f "./release/$1.apk" ]; then
-		eval java -jar revanced-cli*.jar patch \
-		-p *.rvp \
-		$3 \
-		--keystore=./src/_ks.keystore \
-		--out=./release/$2.apk\
-		./release/$1.apk
-	else
-		red_log "[-] Not found $1.apk"
-		exit 1
-	fi
 }
