@@ -3,7 +3,7 @@
 mkdir ./release ./download
 
 #Setup HTMLQ for download apk files
-wget -q -O ./htmlq.tar.gz https://github.com/mgdm/htmlq/releases/latest/download/htmlq-x86_64-linux.tar.gz
+wget -q -O ./htmlq.tar.gz https://github.com/ericchiang/pup/releases/download/v0.4.0/pup_v0.4.0_linux_amd64.zip
 tar -xf "./htmlq.tar.gz" -C "./"
 HTMLQ="./htmlq"
 #Setup APKEditor for install combine split apks
