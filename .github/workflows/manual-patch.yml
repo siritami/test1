@@ -50,9 +50,11 @@ jobs:
           docker run --rm --platform linux/arm64 -v $PWD:/workspace -w /workspace ubuntu:20.04 bash -c "
             apt-get update && \
             apt-get install -y wget curl jq && \
-            wget -q -O ./htmlq.tar.gz https://github.com/mgdm/htmlq/releases/latest/download/htmlq-x86_64-linux.tar.gz && \
-            tar -xf "./htmlq.tar.gz" -C "./" && \
-            HTMLQ="./htmlq" && \
+            apt install gnupg ca-certificates curl && \
+            curl -s https://repos.azul.com/azul-repo.key | sudo gpg --dearmor -o /usr/share/keyrings/azul.gpg && \
+            echo "deb [signed-by=/usr/share/keyrings/azul.gpg] https://repos.azul.com/zulu/deb stable main" | sudo tee /etc/apt/sources.list.d/zulu.list && \
+            apt install zulu21-jdk && \
+            java -version && \
             wget -q -O ./APKEditor.jar https://github.com/REAndroid/APKEditor/releases/download/V1.4.1/APKEditor-1.4.1.jar && \
             APKEditor="./APKEditor.jar" && \
             bash src/build/Revanced-Extended.sh
