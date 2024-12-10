@@ -22,30 +22,31 @@ on:
         type: string
 jobs:
   patch_rve:
-    name: Patch Revanced Extended Stable in Sandbox
+    name: Patch Revanced Extended Stable in Sandbox (ARM)
     if: ${{ github.event.inputs.org == 'Revanced Extended' || inputs.org == 'Revanced Extended' }}
     runs-on: ubuntu-latest
-    container:
-      image: ubuntu:20.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4.2.2
 
-      - name: Preparing to patch
-        uses: ./.github/actions/preparing
+      - name: Set up QEMU for ARM
+        uses: docker/setup-qemu-action@v2
+        with:
+          platforms: linux/arm64
 
-      - name: Setup
-        id: setup-rve
-        if: steps.check-gh-rve.outputs.internet_error == '0'
-        run: |
-          apt-get update && apt-get install -y curl jq wget
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Set up jdk
+        uses: actions/setup-java@v4.5.0
+        with:
+          distribution: 'zulu'
+          java-version: '21'
           
-      - name: Patch apk in Sandbox
+      - name: Patch apk
         id: patch-rve
         if: steps.check-gh-rve.outputs.internet_error == '0'
         run: |
-          chmod +x src/build/Revanced-Extended.sh
-          chmod u-x src/build/Revanced-Extended.sh
           bash src/build/Revanced-Extended.sh
 
       - name: Release
