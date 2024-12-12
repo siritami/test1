@@ -1,7 +1,7 @@
 import requests
 import os
 
-def download_file(url: str, file_name: str) -> None:
+def download_file(url, file_name):
     dir_path = "./download_cli"
     os.makedirs(dir_path, exist_ok=True)
     
@@ -14,7 +14,7 @@ def download_file(url: str, file_name: str) -> None:
     else:
         print(f"Failed to download {file_name}")
 
-def dl_gh(repo_name: str, author: str, tag: str) -> None:
+def dl_gh(repo_name, author, tag):
     if tag == "prerelease":
         base_url = f"https://api.github.com/repos/{author}/{repo_name}/releases"
     else:
@@ -31,9 +31,13 @@ def dl_gh(repo_name: str, author: str, tag: str) -> None:
     for release in releases if tag == "prerelease" else [releases]:
         if release.get("prerelease") == (tag == "prerelease"):
             assets = release.get("assets", [])
-            for asset in assets:
-                download_url = asset.get("browser_download_url", "")
-                if download_url.endswith(".asc"):
-                    continue  # Skip downloading .asc files
-                file_name = asset.get("name", "")
-                download_file(download_url, file_name)
+            # Download only the first asset
+            if assets:
+                first_asset = assets[0]
+                download_url = first_asset.get("browser_download_url", "")
+                if not download_url.endswith(".asc"):
+                    file_name = first_asset.get("name", "")
+                    download_file(download_url, file_name)
+                break  # Exit loop after processing the first asset
+            else:
+                print("No assets found in this release.")
