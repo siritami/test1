@@ -1,4 +1,5 @@
 import requests
+import os
 
 def dl_gh(repo_name, author, tag):
     # Determine if the tag is a prerelease
@@ -21,7 +22,10 @@ def dl_gh(repo_name, author, tag):
                 print(f"Release URL: {release['html_url']}")
                 print("Assets:")
                 for asset in release['assets']:
-                    print(f"- {asset['name']} (Download URL: {asset['browser_download_url']})")
+                    asset_name = asset['name']
+                    if not asset_name.endswith('.asc'):
+                        print(f"- {asset_name} (Download URL: {asset['browser_download_url']})")
+                        download_asset(asset['browser_download_url'], asset_name)
                 print("="*40)
         else:
             # For specific tag, display the single release
@@ -30,7 +34,23 @@ def dl_gh(repo_name, author, tag):
             print(f"Release URL: {releases['html_url']}")
             print("Assets:")
             for asset in releases['assets']:
-                print(f"- {asset['name']} (Download URL: {asset['browser_download_url']})")
+                asset_name = asset['name']
+                if not asset_name.endswith('.asc'):
+                    print(f"- {asset_name} (Download URL: {asset['browser_download_url']})")
+                    download_asset(asset['browser_download_url'], asset_name)
             print("="*40)
     else:
         print(f"Failed to fetch releases for {repo_name}/{author}. HTTP Status Code: {response.status_code}")
+
+def download_asset(url, filename):
+    # Send GET request to download the file
+    response = requests.get(url, stream=True)
+    
+    if response.status_code == 200:
+        # Open the file and save it
+        with open(filename, 'wb') as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                f.write(chunk)
+        print(f"Downloaded: {filename}")
+    else:
+        print(f"Failed to download {filename}. HTTP Status Code: {response.status_code}")
