@@ -14,26 +14,30 @@ def dl_gh(repo_name, author, tag):
     response = requests.get(base_url)
     releases = response.json()
     
-    for release in releases:
-        if release.get("prerelease", False):
-            assets = release.get("assets", [])
-            for asset in assets:
-                download_url = asset.get("browser_download_url")
-                if download_url and not download_url.endswith(".asc"):
-                    filename = asset.get("name")
-                    if filename:
-                        response = requests.get(download_url)
-                        file_path = os.path.join(download_dir, filename)
-                        with open(file_path, 'wb') as f:
-                            f.write(response.content)
-        else:
-            assets = release.get("assets", [])
-            for asset in assets:
-                download_url = asset.get("browser_download_url")
-                if download_url and not download_url.endswith(".asc"):
-                    filename = asset.get("name")
-                    if filename:
-                        response = requests.get(download_url)
-                        file_path = os.path.join(download_dir, filename)
-                        with open(file_path, 'wb') as f:
-                            f.write(response.content)
+    if isinstance(releases, list):
+        for release in releases:
+            if isinstance(release, dict):
+                if release.get("prerelease", False):
+                    assets = release.get("assets", [])
+                    for asset in assets:
+                        download_url = asset.get("browser_download_url")
+                        if download_url and not download_url.endswith(".asc"):
+                            filename = asset.get("name")
+                            if filename:
+                                response = requests.get(download_url)
+                                file_path = os.path.join(download_dir, filename)
+                                with open(file_path, 'wb') as f:
+                                    f.write(response.content)
+                else:
+                    assets = release.get("assets", [])
+                    for asset in assets:
+                        download_url = asset.get("browser_download_url")
+                        if download_url and not download_url.endswith(".asc"):
+                            filename = asset.get("name")
+                            if filename:
+                                response = requests.get(download_url)
+                                file_path = os.path.join(download_dir, filename)
+                                with open(file_path, 'wb') as f:
+                                    f.write(response.content)
+    else:
+        print("Error: Unexpected response format from GitHub API.")
