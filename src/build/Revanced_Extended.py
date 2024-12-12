@@ -11,5 +11,5 @@ from downloader.github import dl_gh
 
 # Your function calls
 dl_gh("revanced-patches", "ReVanced", "prerelease")
-dl_gh("revanced-patches", "ReVanced", "latest")
-dl_gh("revanced-patches", "ReVanced", "v5.4.0-dev.4")
+#dl_gh("revanced-patches", "ReVanced", "latest")
+#dl_gh("revanced-patches", "ReVanced", "v5.4.0-dev.4")
