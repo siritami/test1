@@ -6,18 +6,30 @@ def dl_gh(repo_name, author, tag):
     if tag == 'prerelease':
         base_url = f'https://api.github.com/repos/{author}/{repo_name}/releases'
     else:
-        base_url = f'https://api.github.com/repos/{author}/{repo_name}/releases/{tag}'
+        base_url = f'https://api.github.com/repos/{author}/{repo_name}/releases/tags/{tag}'
 
     # Send a request to fetch the release information
     response = requests.get(base_url)
+    
     if response.status_code != 200:
         print(f"Error fetching releases for {repo_name} by {author} with tag {tag}")
         return
-    
-    releases = response.json()
 
-    # Look for the latest prerelease if no exact match found
-    release = next((r for r in releases if r['tag_name'] == tag), None)
+    # Check if the response is a valid JSON
+    try:
+        releases = response.json()
+    except ValueError:
+        print("Error parsing JSON from GitHub API response.")
+        return
+
+    # Check if the response is a list (i.e., multiple releases)
+    if not isinstance(releases, list):
+        print(f"Unexpected response format: {releases}")
+        return
+
+    # Look for the release with the matching tag
+    release = next((r for r in releases if r.get('tag_name') == tag), None)
+    
     if not release:
         print(f"No release found for tag {tag}.")
         return
