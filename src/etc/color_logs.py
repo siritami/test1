@@ -10,9 +10,9 @@ def download_file(url, file_name, repo_name, author):
         file_path = os.path.join(dir_path, file_name)
         with open(file_path, 'wb') as f:
             f.write(response.content)
-        print(f"\033[92m[+] Downloaded {file_name} from {repo_name} by {author}\033[0m")
+        print(f"[+] Downloaded {file_name} from {repo_name} by {author}")
     else:
-        print(f"\033[91m[-] Failed to download {file_name} from {repo_name} by {author}\033[0m")
+        print(f"[-] Failed to download {file_name} from {repo_name} by {author}")
 
 def dl_gh(repo_name, author, tag):
     if tag == "latest":
@@ -27,7 +27,7 @@ def dl_gh(repo_name, author, tag):
         response.raise_for_status()
         releases = response.json()
     except requests.RequestException as e:
-        print(f"\033[91m[-] Failed to request github: {e}\033[0m")
+        print(f"[-] Failed to request github: {e}")
         return
 
     if tag in ("latest", "prerelease"):
@@ -59,4 +59,4 @@ def dl_gh(repo_name, author, tag):
                     file_name = asset.get("name", "")
                     download_file(download_url, file_name, repo_name, author)
         else:
-            print(f"\033[93m[?] No release found. Check input\033[0m")
+            print(f"[?] No release found. Check input")
