@@ -1,7 +1,6 @@
 import requests
 import os
 
-
 def download_file(url, file_name, repo_name, author):
     dir_path = "/download_cli"
     os.makedirs(dir_path, exist_ok=True)
@@ -28,7 +27,7 @@ def dl_gh(repo_name, author, tag):
         response.raise_for_status()
         releases = response.json()
     except requests.RequestException as e:
-        print(f"[-] Failed to request github from {repo_name} by {author}: {e}")
+        print(f"[-] Failed to request github: {e}")
         return
 
     if tag in ("latest", "prerelease"):
@@ -41,7 +40,7 @@ def dl_gh(repo_name, author, tag):
                     download_url = asset.get("browser_download_url", "")
                     if not download_url.endswith(".asc"):
                         file_name = asset.get("name", "")
-                        download_file(download_url, file_name)
+                        download_file(download_url, file_name, repo_name, author)
                 break 
             elif tag == "latest":
                 assets = release.get("assets", [])
@@ -49,7 +48,7 @@ def dl_gh(repo_name, author, tag):
                     download_url = asset.get("browser_download_url", "")
                     if not download_url.endswith(".asc"):
                         file_name = asset.get("name", "")
-                        download_file(download_url, file_name)
+                        download_file(download_url, file_name, repo_name, author)
                 break
     else:
         if isinstance(releases, dict) and 'assets' in releases:
@@ -58,6 +57,6 @@ def dl_gh(repo_name, author, tag):
                 download_url = asset.get("browser_download_url", "")
                 if not download_url.endswith(".asc"):
                     file_name = asset.get("name", "")
-                    download_file(download_url, file_name)
+                    download_file(download_url, file_name, repo_name, author)  # Include repo_name and author
         else:
             print(f"[?] No release found. Check input")
