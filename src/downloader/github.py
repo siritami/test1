@@ -2,55 +2,49 @@ import requests
 import os
 
 def dl_gh(repo_name, author, tag):
-    # Determine if the tag is a prerelease
-    if tag == "prerelease":
-        base_url = f"https://api.github.com/repos/{author}/{repo_name}/releases"
+    # Determine the base URL for fetching the releases
+    if tag == 'prerelease':
+        base_url = f'https://api.github.com/repos/{author}/{repo_name}/releases'
     else:
-        base_url = f"https://api.github.com/repos/{author}/{repo_name}/releases/{tag}"
-    
-    # Fetch the release data from GitHub API
-    response = requests.get(base_url)
-    
-    if response.status_code == 200:
-        releases = response.json()
-        
-        # If it's a prerelease, the response is a list of release objects
-        if isinstance(releases, list):
-            for release in releases:
-                print(f"Release Name: {release['name']}")
-                print(f"Tag Name: {release['tag_name']}")
-                print(f"Release URL: {release['html_url']}")
-                print("Assets:")
-                for asset in release['assets']:
-                    asset_name = asset['name']
-                    if not asset_name.endswith('.asc'):
-                        print(f"- {asset_name} (Download URL: {asset['browser_download_url']})")
-                        download_asset(asset['browser_download_url'], asset_name)
-                print("="*40)
-        else:
-            # For specific tag, display the single release
-            print(f"Release Name: {releases['name']}")
-            print(f"Tag Name: {releases['tag_name']}")
-            print(f"Release URL: {releases['html_url']}")
-            print("Assets:")
-            for asset in releases['assets']:
-                asset_name = asset['name']
-                if not asset_name.endswith('.asc'):
-                    print(f"- {asset_name} (Download URL: {asset['browser_download_url']})")
-                    download_asset(asset['browser_download_url'], asset_name)
-            print("="*40)
-    else:
-        print(f"Failed to fetch releases for {repo_name}/{author}. HTTP Status Code: {response.status_code}")
+        base_url = f'https://api.github.com/repos/{author}/{repo_name}/releases/{tag}'
 
-def download_asset(url, filename):
-    # Send GET request to download the file
-    response = requests.get(url, stream=True)
+    # Send a request to fetch the release information
+    response = requests.get(base_url)
+    if response.status_code != 200:
+        print(f"Error fetching releases for {repo_name} by {author} with tag {tag}")
+        return
     
-    if response.status_code == 200:
-        # Open the file and save it
-        with open(filename, 'wb') as f:
-            for chunk in response.iter_content(chunk_size=8192):
-                f.write(chunk)
-        print(f"Downloaded: {filename}")
-    else:
-        print(f"Failed to download {filename}. HTTP Status Code: {response.status_code}")
+    releases = response.json()
+
+    # Look for the latest prerelease if no exact match found
+    release = next((r for r in releases if r['tag_name'] == tag), None)
+    if not release:
+        print(f"No release found for tag {tag}.")
+        return
+    
+    # Extract assets from the release
+    assets = release.get('assets', [])
+    if not assets:
+        print("No assets found for the release.")
+        return
+
+    # Create the /download_cli directory if it doesn't exist
+    save_dir = '/download_cli'
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+
+    # Download and save the files to /download_cli folder
+    for asset in assets:
+        download_url = asset['browser_download_url']
+        file_name = asset['name']
+        file_path = os.path.join(save_dir, file_name)
+
+        # Download the file
+        print(f"Downloading {file_name}...")
+        asset_response = requests.get(download_url)
+        if asset_response.status_code == 200:
+            with open(file_path, 'wb') as file:
+                file.write(asset_response.content)
+            print(f"Downloaded {file_name} to {file_path}")
+        else:
+            print(f"Failed to download {file_name}. HTTP Status code: {asset_response.status_code}")

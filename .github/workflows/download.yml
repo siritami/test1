@@ -20,3 +20,12 @@ jobs:
           pip install -r requirements.txt
       - name: Download
         run: python src\build\Revanced_Extended.py
+      - name: Release
+        uses: ncipollo/release-action@v1.14.0
+        with:
+          artifacts: |
+            /download_cli/*
+          name: Revanced & Revanced Extended
+          tag: all
+          body: "Hello"
+          allowUpdates: true
