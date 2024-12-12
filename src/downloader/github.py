@@ -1,7 +1,8 @@
 import requests
 import os
 
-def download_file(url, file_name):
+
+def download_file(url, file_name, repo_name, author):
     dir_path = "/download_cli"
     os.makedirs(dir_path, exist_ok=True)
     
@@ -27,7 +28,7 @@ def dl_gh(repo_name, author, tag):
         response.raise_for_status()
         releases = response.json()
     except requests.RequestException as e:
-        print(f"[-] Failed to request github: {e}")
+        print(f"[-] Failed to request github from {repo_name} by {author}: {e}")
         return
 
     if tag in ("latest", "prerelease"):
