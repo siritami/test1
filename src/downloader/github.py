@@ -5,7 +5,7 @@ def dl_gh(repo_name, author, tag):
     if tag == "prerelease":
         base_url = f"https://api.github.com/repos/{author}/{repo_name}/releases"
     else:
-        base_url = f"https://api.github.com/repos/{author}/{repo_name}/releases/tags/{tag}"
+        base_url = f"https://api.github.com/repos/{author}/{repo_name}/releases/{tag}"
     
     # Fetch the release data from GitHub API
     response = requests.get(base_url)
