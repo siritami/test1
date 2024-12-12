@@ -1,7 +1,12 @@
 import requests
 import os
+import re
+
+major_cli_version = None  # Initialize global variable
 
 def download_file(url, file_name, repo_name, author):
+    global major_cli_version
+    
     dir_path = "/download_cli"
     os.makedirs(dir_path, exist_ok=True)
     
@@ -10,7 +15,16 @@ def download_file(url, file_name, repo_name, author):
         file_path = os.path.join(dir_path, file_name)
         with open(file_path, 'wb') as f:
             f.write(response.content)
+        
         print(f"\033[92m[+] Downloaded {file_name} from {repo_name} by {author}\033[0m")
+        
+        # Check if the file_name matches the pattern to extract version
+        match = re.match(r'^revanced-cli-(\d+)\.\d+\.\d+-.*\.jar$', file_name)
+        if match:
+            version = int(match.group(1))  # Extract major version
+            major_cli_version = version   # Set global variable
+            print(f"\033[94m[+] Set major_cli_version to {version}\033[0m")
+        
     else:
         print(f"\033[91m[-] Failed to download {file_name} from {repo_name} by {author}\033[0m")
 
