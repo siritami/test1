@@ -57,6 +57,6 @@ def dl_gh(repo_name, author, tag):
                 download_url = asset.get("browser_download_url", "")
                 if not download_url.endswith(".asc"):
                     file_name = asset.get("name", "")
-                    download_file(download_url, file_name, repo_name, author)  # Include repo_name and author
+                    download_file(download_url, file_name, repo_name, author)
         else:
             print(f"[?] No release found. Check input")
