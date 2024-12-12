@@ -1,70 +1,68 @@
 import os
-import time
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.action_chains import ActionChains
+import re
+import requests
+import subprocess
+from bs4 import BeautifulSoup
 
-download_dir = "./download"
-if not os.path.exists(download_dir):
-    os.makedirs(download_dir)
+def download_github_release(repo, owner, tag):
+    url = f"https://api.github.com/repos/{owner}/{repo}/releases"
+    response = requests.get(url)
+    response.raise_for_status()
+    releases = response.json()
 
-# Chrome options configuration
-def get_chrome_options(download_dir):
-    chrome_options = Options()
-    chrome_options.add_argument("--headless")
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
+    for release in releases:
+        if tag == "latest" or (tag == "prerelease" and release["prerelease"]):
+            for asset in release["assets"]:
+                if not asset["browser_download_url"].endswith(".asc"):
+                    file_name = asset["name"]
+                    download_url = asset["browser_download_url"]
+                    print(f"[+] Downloading {file_name} from {owner}")
+                    with requests.get(download_url, stream=True) as r:
+                        r.raise_for_status()
+                        with open(file_name, 'wb') as f:
+                            for chunk in r.iter_content(chunk_size=8192):
+                                f.write(chunk)
+            break
 
-    prefs = {
-        "download.default_directory": os.path.abspath(download_dir),
-        "download.prompt_for_download": False,
-        "download.directory_upgrade": True
-    }
-    chrome_options.add_experimental_option("prefs", prefs)
-    return chrome_options
+def download_apk(url, output):
+    headers = {"User-Agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.6723.58 Mobile Safari/537.36"}
+    response = requests.get(url, headers=headers)
+    response.raise_for_status()
 
-links = os.getenv("LINKS", "").splitlines()
+    soup = BeautifulSoup(response.text, "html.parser")
+    download_button = soup.find("a", class_="downloadButton")
 
-def download_file(url, download_dir):
-    driver = None
-    try:
-        # Initialize ChromeDriver
-        chrome_options = get_chrome_options(download_dir)
-        driver = webdriver.Chrome(options=chrome_options)
-        
-        driver.get(url)
-        time.sleep(4)
-        
-        download_button = driver.find_element(By.XPATH, "//a[contains(@class, 'link-button') and contains(text(), 'Download')]")
-        
-        actions = ActionChains(driver)
-        for _ in range(1):
-            actions.double_click(download_button).perform()
-            time.sleep(1)
-        
-    except Exception as e:
-        print(f"Error while processing {url}: {e}")
-    finally:
-        # Ensure the driver quits after use
-        if driver:
-            driver.quit()
+    if download_button:
+        download_url = f"https://www.apkmirror.com{download_button['href']}"
+        print(f"[+] Downloading APK from {download_url}")
+        with requests.get(download_url, stream=True) as r:
+            r.raise_for_status()
+            with open(output, 'wb') as f:
+                for chunk in r.iter_content(chunk_size=8192):
+                    f.write(chunk)
+    else:
+        print("[-] Failed to find the download link.")
 
-def remove_downloads(directory):
-    try:
-        for file in os.listdir(directory):
-            if file.endswith(".crdownload"):
-                file_path = os.path.join(directory, file)
-                os.remove(file_path)
-    except Exception as e:
-        print(f"Error while canceling downloads: {e}")
+def patch_apk(apk_name, version, patch_tool="revanced-cli"):  
+    if not os.path.exists(f"./download/{apk_name}.apk"):
+        print(f"[-] {apk_name}.apk not found.")
+        return
 
-# Process each link
-for link in links:
-    if link.strip().startswith("#"):
-        continue
-    download_file(link, download_dir)
+    patches = [file for file in os.listdir() if file.endswith(".rvp")]
 
-# Clean up temporary downloads
-time.sleep(3)
-remove_downloads(download_dir)
+    if not patches:
+        print("[-] No patches found.")
+        return
+
+    print(f"[+] Patching {apk_name} with Revanced CLI...")
+    command = ["java", "-jar", patch_tool, "patch", "-p", *patches, f"--out=./release/{apk_name}-{version}.apk", f"./download/{apk_name}.apk"]
+
+    subprocess.run(command)
+
+# Example usage
+download_github_release("revanced-patches", "inotia00", "latest")
+download_github_release("revanced-cli", "inotia00", "latest")
+download_apk("https://www.apkmirror.com/apk/google-inc/youtube/youtube", "youtube.apk")
+patch_apk("youtube", "revanced-extended")
+
+print("[+] Script execution completed.")
