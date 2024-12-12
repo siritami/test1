@@ -2,7 +2,7 @@ import requests
 import os
 
 def download_file(url, file_name):
-    dir_path = "./download_cli"
+    dir_path = "/download_cli"
     os.makedirs(dir_path, exist_ok=True)
     
     response = requests.get(url)
