@@ -1,16 +1,34 @@
 import requests
 import os
 
-def dl_gh(repo_name, author, tag):
+def download_file(url: str, file_name: str) -> None:
+    dir_path = "./download_cli"
+    os.makedirs(dir_path, exist_ok=True)
+    
+    response = requests.get(url)
+    if response.status_code == 200:
+        file_path = os.path.join(dir_path, file_name)
+        with open(file_path, 'wb') as f:
+            f.write(response.content)
+        print(f"Downloaded {file_name}")
+    else:
+        print(f"Failed to download {file_name}")
+
+def dl_gh(repo_name: str, author: str, tag: str) -> None:
     if tag == "prerelease":
         base_url = f"https://api.github.com/repos/{author}/{repo_name}/releases"
     else:
         base_url = f"https://api.github.com/repos/{author}/{repo_name}/releases/{tag}"
 
-    response = requests.get(base_url)
-    releases = response.json()
+    try:
+        response = requests.get(base_url)
+        response.raise_for_status()
+        releases = response.json()
+    except requests.RequestException as e:
+        print(f"Request failed: {e}")
+        return
 
-    for release in releases:
+    for release in releases if tag == "prerelease" else [releases]:
         if release.get("prerelease") == (tag == "prerelease"):
             assets = release.get("assets", [])
             for asset in assets:
@@ -19,12 +37,3 @@ def dl_gh(repo_name, author, tag):
                     continue  # Skip downloading .asc files
                 file_name = asset.get("name", "")
                 download_file(download_url, file_name)
-
-def download_file(url, file_name):
-    response = requests.get(url)
-    if response.status_code == 200:
-        with open(f"./download_cli/{file_name}", 'wb') as f:
-            f.write(response.content)
-        print(f"Downloaded {file_name}")
-    else:
-        print(f"Failed to download {file_name}")
