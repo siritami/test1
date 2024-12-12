@@ -2,7 +2,7 @@ import requests
 import os
 
 def download_file(url, file_name):
-    dir_path = "/download_cli"
+    dir_path = "./download_cli"
     os.makedirs(dir_path, exist_ok=True)
     
     response = requests.get(url)
@@ -15,10 +15,12 @@ def download_file(url, file_name):
         print(f"Failed to download {file_name}")
 
 def dl_gh(repo_name, author, tag):
-    if tag == "prerelease":
+    if tag == "latest":
+        base_url = f"https://api.github.com/repos/{author}/{repo_name}/releases/latest"
+    elif tag == "prerelease":
         base_url = f"https://api.github.com/repos/{author}/{repo_name}/releases"
     else:
-        base_url = f"https://api.github.com/repos/{author}/{repo_name}/releases/{tag}"
+        base_url = f"https://api.github.com/repos/{author}/{repo_name}/releases/tags/{tag}"
 
     try:
         response = requests.get(base_url)
@@ -28,16 +30,33 @@ def dl_gh(repo_name, author, tag):
         print(f"Request failed: {e}")
         return
 
-    for release in releases if tag == "prerelease" else [releases]:
-        if release.get("prerelease") == (tag == "prerelease"):
-            assets = release.get("assets", [])
-            # Download only the first asset
-            if assets:
-                first_asset = assets[0]
-                download_url = first_asset.get("browser_download_url", "")
+    if tag in ("latest", "prerelease"):
+        if isinstance(releases, dict):
+            releases = [releases]
+        for release in releases:
+            if tag == "prerelease" and release.get("prerelease"):
+                assets = release.get("assets", [])
+                for asset in assets:
+                    download_url = asset.get("browser_download_url", "")
+                    if not download_url.endswith(".asc"):
+                        file_name = asset.get("name", "")
+                        download_file(download_url, file_name)
+                break 
+            elif tag == "latest":
+                assets = release.get("assets", [])
+                for asset in assets:
+                    download_url = asset.get("browser_download_url", "")
+                    if not download_url.endswith(".asc"):
+                        file_name = asset.get("name", "")
+                        download_file(download_url, file_name)
+                break
+    else:
+        if isinstance(releases, dict) and 'assets' in releases:
+            assets = releases.get("assets", [])
+            for asset in assets:
+                download_url = asset.get("browser_download_url", "")
                 if not download_url.endswith(".asc"):
-                    file_name = first_asset.get("name", "")
+                    file_name = asset.get("name", "")
                     download_file(download_url, file_name)
-                break  # Exit loop after processing the first asset
-            else:
-                print("No assets found in this release.")
+        else:
+            print(f"No release found for tag {tag}")
