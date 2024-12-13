@@ -40,21 +40,15 @@ def download_apk(package_name, app_url, type, dl_name, version, arch, dpi, os):
                             if version != 'latest':
                                 break
                 except FileNotFoundError:
-                    print(f"Error: The JSON file at {json_exec} could not be found.")
+                    print(f"Error: The JSON file at {json_exec} could not be found. Setting version to 'latest'.")
                     version = 'latest'
                 except json.JSONDecodeError:
-                    print(f"Error: The JSON file at {json_exec} is not valid JSON.")
+                    print(f"Error: The JSON file at {json_exec} is not valid JSON. Setting version to 'latest'.")
                     version = 'latest'
             else:
                 print("Error: json_exec is None, cannot proceed with JSON file. Setting version to 'latest'.")
                 version = 'latest'
-                # Here you might want to either stop the function or continue with a default behavior
 
-    # ... Rest of the function remains the same ...
-
-# Example usage:
-# download_apk("com.google.android.youtube", "https://www.apkmirror.com/apk/google-inc/youtube/", "apk", "youtube.apk", "", "arm64-v8a", "nodpi", "Android 8.0+")
-    
     # Step 2: If version is 'latest', fetch from APKMirror
     if version == 'latest':
         # Fetch the list URL from the main page
@@ -125,5 +119,5 @@ def download_apk(package_name, app_url, type, dl_name, version, arch, dpi, os):
     else:
         print("Variants table not found.")
 
-
-#download_apk("com.google.android.youtube", "https://www.apkmirror.com/apk/google-inc/youtube/", "apk", "youtube.apk", "", "arm64-v8a", "nodpi", "Android 8.0+")
+# Example usage:
+# download_apk("com.google.android.youtube", "https://www.apkmirror.com/apk/google-inc/youtube/", "apk", "youtube.apk", "", "", "nodpi", "Android 8.0+")
