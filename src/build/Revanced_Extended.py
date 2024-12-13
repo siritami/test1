@@ -11,7 +11,9 @@ from downloader.github import dl_gh
 from downloader.apkmirror import download_apk
 
 dl_gh("revanced-patches", "ReVanced", "latest")
+time.sleep(5)
 dl_gh("revanced-cli", "ReVanced", "latest")
+time.sleep(5)
 dl_gh("revanced-integrations", "ReVanced", "latest")
 time.sleep(5)
 
