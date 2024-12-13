@@ -14,7 +14,10 @@ def download_apk(package_name, app_url, app_type, dl_name, version, arch, dpi, p
         file_path = os.path.join('download_cli', file_name)
         if 'cli' in file_name and file_name.endswith('.jar'):
             cli_exec = file_path
-            major_cli_version = int(file_name.split('-')[1].split('.')[0])
+            try:
+                major_cli_version = int(re.search(r'revanced-cli-(\d+)\.', file_name).group(1))
+            except AttributeError:
+                raise ValueError(f"Unable to determine major version from CLI file name: {file_name}")
         elif 'patch' in file_name and file_name.endswith('.jar') and not file_name.endswith('.json'):
             patches_exec = file_path
         elif file_name.endswith('.json'):
