@@ -1,123 +1,110 @@
-import os
-import re
 import requests
 from bs4 import BeautifulSoup
-from urllib.parse import urljoin
+import subprocess
 import json
+import re
 
-# Global imports
 from downloader.github import major_cli_version, cli_exec, patches_exec, json_exec
 
-def download_apk(package_name, app_url, type, dl_name, version, arch, dpi, os):
-    # Step 1: Find version
+def download_apk(package_name, app_url, _type, dl_name, version, arch, dpi, os):
+    # Step 1: Determine the correct version
     if not version:
-        # Check if major_cli_version is numeric before comparison
-        if isinstance(major_cli_version, (int, float)) and major_cli_version >= 5:
-            command = f"java -jar {cli_exec} list-patches --with-packages --with-versions {patches_exec}"
-            output = os.popen(command).read()
-            
-            # Parse the output to find the latest version for the package
-            versions = re.findall(r'Package name: ' + re.escape(package_name) + r'\n\s*Compatible versions:\s*([\s\S]*?)(?=\n\s*\n|\Z)', output)
-            if versions:
-                version_list = []
-                for version_block in versions:
-                    version_list.extend(re.findall(r'\d+\.\d+\.\d+', version_block))
-                version = max(version_list, key=lambda v: tuple(map(int, v.split('.'))), default='latest')
-            else:
-                version = 'latest'
+        if major_cli_version >= 5:
+            # Run CLI command to list patches and their compatible versions
+            result = subprocess.run(
+                ["java", "-jar", cli_exec, "list-patches", "--with-packages", "--with-versions", patches_exec],
+                capture_output=True, text=True
+            )
+            compatible_versions = extract_version_from_patch(result.stdout, package_name)
+            version = compatible_versions if compatible_versions else "latest"
         else:
-            # Check if json_exec is not None before trying to open the file
-            if json_exec is not None:
-                try:
-                    with open(json_exec, 'r') as file:
-                        data = json.load(file)
-                        for item in data:
-                            for package in item.get('compatiblePackages', []):
-                                if package.get('name') == package_name:
-                                    version_list = package.get('versions', [])
-                                    version = max(version_list, key=lambda v: tuple(map(int, v.split('.'))), default='latest')
-                                    break
-                            if version != 'latest':
-                                break
-                except FileNotFoundError:
-                    print(f"Error: The JSON file at {json_exec} could not be found. Setting version to 'latest'.")
-                    version = 'latest'
-                except json.JSONDecodeError:
-                    print(f"Error: The JSON file at {json_exec} is not valid JSON. Setting version to 'latest'.")
-                    version = 'latest'
-            else:
-                print("Error: json_exec is None, cannot proceed with JSON file. Setting version to 'latest'.")
-                version = 'latest'
+            with open(json_exec, 'r') as f:
+                patches = json.load(f)
+                compatible_versions = extract_version_from_json(patches, package_name)
+                version = compatible_versions if compatible_versions else "latest"
+    
+    # Step 2: If version is "latest", request the APK Mirror page
+    if version == "latest":
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (HTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36",
+            "Authorization": "Basic YXBpLWFwa3VwZGF0ZXI6cm01cmNmcnVVakt5MDRzTXB5TVBKWFc4",
+            "Content-Type": "application/json",
+        }
+        
+        # Load the app_url page to find the list_url
+        list_url = get_list_url(app_url)
+        
+        # Extract highest version from the APKMirror page
+        highest_version = get_highest_version(list_url)
+        _version = re.sub(r'\.', '-', highest_version)
+        
+        # Construct the app URL with the selected version
+        updated_app_url = app_url.replace(version, _version)
+        
+        # Fetch the APK download URL
+        download_url = get_download_url(updated_app_url, arch, dpi, os)
+        
+        # Download APK from the constructed URL
+        download_apk_from_url(download_url, dl_name)
+        
+    else:
+        print(f"Specified version {version} is not 'latest', proceeding without scraping.")
 
-    # Step 2: If version is 'latest', fetch from APKMirror
-    if version == 'latest':
-        # Fetch the list URL from the main page
-        response = requests.get(app_url)
-        soup = BeautifulSoup(response.text, 'html.parser')
-        list_url_element = soup.select_one('.table-cell.center a.fontBlack[href]')
-        if list_url_element:
-            list_url = urljoin('https://www.apkmirror.com', list_url_element['href'])
-            
-            # Fetch the list of versions
-            list_response = requests.get(list_url)
-            list_soup = BeautifulSoup(list_response.text, 'html.parser')
-            version_entries = list_soup.select('.appRow .appRowTitle a')
-            if version_entries:
-                version = max([entry.text.split()[1] for entry in version_entries], key=lambda v: tuple(map(int, v.replace('beta', '').split('.'))))
-    
-    # Convert version format for URL
-    _version = version.replace('.', '-')
-    app_url = app_url.rsplit('/', 1)[0] + f'/{_version}-release/'
-    
-    # Step 2: Find the specific APK or Bundle based on parameters
+def extract_version_from_patch(patch_output, package_name):
+    compatible_versions = []
+    for line in patch_output.split("\n"):
+        if package_name in line:
+            versions = re.findall(r"\d+\.\d+\.\d+\.\d+", line)
+            if versions:
+                compatible_versions.extend(versions)
+    return max(compatible_versions) if compatible_versions else None
+
+def extract_version_from_json(patches, package_name):
+    for patch in patches:
+        for compatible_package in patch.get('compatiblePackages', []):
+            if compatible_package['name'] == package_name:
+                versions = compatible_package.get('versions', [])
+                return max(versions) if versions else None
+    return None
+
+def get_list_url(app_url):
     response = requests.get(app_url)
     soup = BeautifulSoup(response.text, 'html.parser')
-    variants_table = soup.select_one('.variants-table')
-    if variants_table:
-        rows = variants_table.select('.table-row')
-        for row in rows:
-            cells = row.select('.table-cell')
-            if (type == 'apk' and 'APK' in row.text) or (type == 'bundle' and 'BUNDLE' in row.text):
-                if (arch and arch in cells[1].text.lower()) or (not arch and 'universal' in cells[1].text.lower()):
-                    if (os and os in cells[2].text) or not os:
-                        if (dpi and dpi in cells[3].text) or not dpi:
-                            download_link = cells[4].select_one('a.accent_color')
-                            if download_link:
-                                apk_page_url = urljoin('https://www.apkmirror.com', download_link['href'])
-                                break
-        
-        # Step 3 & Step 4: Navigate to download pages
-        if 'apk_page_url' in locals():
-            apk_page_response = requests.get(apk_page_url)
-            apk_page_soup = BeautifulSoup(apk_page_response.text, 'html.parser')
-            download_button = apk_page_soup.select_one('a.downloadButton')
-            if download_button:
-                download_page_url = urljoin('https://www.apkmirror.com', download_button['href'])
-                final_download_response = requests.get(download_page_url)
-                final_download_soup = BeautifulSoup(final_download_response.text, 'html.parser')
-                final_download_link = final_download_soup.select_one('#download-link')
-                if final_download_link:
-                    final_url = urljoin('https://www.apkmirror.com', final_download_link['href'])
-                    
-                    # Step 5: Download the APK
-                    if not os.path.exists('download_apk'):
-                        os.makedirs('download_apk')
-                    file_path = os.path.join('download_apk', dl_name)
-                    
-                    with requests.get(final_url, stream=True) as r:
-                        r.raise_for_status()
-                        with open(file_path, 'wb') as f:
-                            for chunk in r.iter_content(chunk_size=8192):
-                                f.write(chunk)
-                    print(f"APK downloaded to {file_path}")
-                else:
-                    print("Final download link not found.")
-            else:
-                print("Download button not found.")
-        else:
-            print("No matching variant found.")
-    else:
-        print("Variants table not found.")
+    link = soup.find('a', class_='fontBlack', href=True)
+    if link:
+        return f"https://www.apkmirror.com{link['href']}"
+    return None
 
-# Example usage:
-# download_apk("com.google.android.youtube", "https://www.apkmirror.com/apk/google-inc/youtube/", "apk", "youtube.apk", "", "", "nodpi", "Android 8.0+")
+def get_highest_version(list_url):
+    response = requests.get(list_url)
+    soup = BeautifulSoup(response.text, 'html.parser')
+    versions = []
+    for version_tag in soup.find_all('h5', class_='appRowTitle'):
+        version = re.search(r'(\d+\.\d+\.\d+\.\d+)', version_tag.text)
+        if version:
+            versions.append(version.group(0))
+    return max(versions, key=lambda v: list(map(int, v.split('.')))) if versions else None
+
+def get_download_url(app_url, arch, dpi, os):
+    response = requests.get(app_url)
+    soup = BeautifulSoup(response.text, 'html.parser')
+    variants_table = soup.find('div', class_='table topmargin variants-table')
+    download_link = None
+    for row in variants_table.find_all('div', class_='table-row'):
+        columns = row.find_all('div', class_='table-cell')
+        if len(columns) > 3:
+            arch_value = columns[1].text.strip().lower()
+            if arch in arch_value:
+                dpi_value = columns[2].text.strip()
+                if dpi in dpi_value:
+                    download_link = columns[3].find('a', class_='downloadLink')['href']
+                    break
+    return f"https://www.apkmirror.com{download_link}" if download_link else None
+
+def download_apk_from_url(download_url, dl_name):
+    response = requests.get(download_url, stream=True)
+    with open(dl_name, 'wb') as f:
+        for chunk in response.iter_content(chunk_size=1024):
+            if chunk:
+                f.write(chunk)
+    print(f"Downloaded APK saved as {dl_name}")
