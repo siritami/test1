@@ -7,6 +7,7 @@ sys.path.append(src_dir)
 
 from downloader.github import dl_gh
 
-dl_gh("revanced-patches", "ReVanced", "latest")
+#dl_gh("revanced-patches", "ReVanced", "latest")
 dl_gh("revanced-cli", "ReVanced", "latest")
-dl_gh("revanced-integrations", "ReVanced", "latest")
+#dl_gh("revanced-integrations", "ReVanced", "latest")
+dl_gh("piko", "crimera", "latest")
