@@ -5,7 +5,7 @@ script_dir = os.path.dirname(__file__)
 src_dir = os.path.abspath(os.path.join(script_dir, '..', '..', 'src'))
 sys.path.append(src_dir)
 
-from downloader.github import dl_gh, reset_cli_value
+from downloader.github import dl_gh
 from downloader.apkmirror import download_apk
 
 # Download necessary files first
