@@ -1,8 +1,8 @@
-name: Download
+name: 2.Build with remote
 on:
   workflow_dispatch:
 jobs:
-  Download:
+  Build:
     name: Download
     permissions: write-all
     runs-on: windows-latest
