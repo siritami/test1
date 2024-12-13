@@ -15,14 +15,14 @@ jobs:
         uses: actions/setup-python@main
         with:
           python-version: 3.11
-      - name: Set up jdk
+      - name: Install JDK Zulu
         uses: actions/setup-java@v4.5.0
         with:
           distribution: 'zulu'
           java-version: '21'
-      - name: Preparing
+      - name: Insstall Python Packages
         run: |
-          pip install -r requirements.txt
+          pip install -r src\requirements.txt
       - name: Download
         run: python src\build\Revanced_Extended.py
       - name: Release
