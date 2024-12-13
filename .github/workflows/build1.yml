@@ -28,6 +28,7 @@ jobs:
         with:
           artifacts: |
             download_apk\*
+            download_cli\*
           name: Revanced & Revanced Extended
           tag: all
           body: "Hello"
