@@ -13,4 +13,4 @@ dl_gh("revanced-patches", "ReVanced", "latest")
 dl_gh("revanced-cli", "ReVanced", "latest")
 dl_gh("revanced-integrations", "ReVanced", "latest")
 
-dl_apk('com.google.android.youtube', 'https://www.apkmirror.com/apk/google-inc/youtube/youtube-19-47-41-release/', 'apk', 'youtube.apk', '', '', '', '')
+download_apk('com.google.android.youtube', 'https://www.apkmirror.com/apk/google-inc/youtube/youtube-19-47-41-release/', 'apk', 'youtube.apk', '', '', '', '')
