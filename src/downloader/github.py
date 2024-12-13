@@ -9,7 +9,7 @@ integration_exec = None
 
 def download_file(url, file_name, repo_name, author):
     global major_cli_version, cli_exec, patches_exec, integration_exec
-    dir_path = "\download_cli"
+    dir_path = "download_cli"
     os.makedirs(dir_path, exist_ok=True)
     response = requests.get(url)
     if response.status_code == 200:
