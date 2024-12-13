@@ -9,3 +9,4 @@ from downloader.github import dl_gh
 
 dl_gh("revanced-patches", "ReVanced", "latest")
 dl_gh("revanced-cli", "ReVanced", "latest")
+dl_gh("revanced-integrations", "ReVanced", "latest")

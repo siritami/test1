@@ -3,10 +3,12 @@ import os
 import re
 
 major_cli_version = None
-cli_exec = None
+cli_exec = None  # To mark the downloaded CLI file
+patches_exec = None  # To mark the downloaded patches file
+integration_exec = None  # To mark the downloaded integration file
 
 def download_file(url, file_name, repo_name, author):
-    global major_cli_version, cli_exec
+    global major_cli_version, cli_exec, patches_exec, integration_exec
     
     dir_path = "/download_cli"
     os.makedirs(dir_path, exist_ok=True)
@@ -17,11 +19,24 @@ def download_file(url, file_name, repo_name, author):
         with open(file_path, 'wb') as f:
             f.write(response.content)
         print(f"\033[92m[+] Downloaded {file_name} from {repo_name} by {author}\033[0m")
-        match = re.match(r'^revanced-cli-(\d+)\.\d+\.\d+-.*\.jar$', file_name)
-        if match:
-            version = int(match.group(1))
+        
+        # Check if the file matches the CLI file pattern
+        match_cli = re.match(r'^revanced-cli-(\d+)\.\d+\.\d+-.*\.jar$', file_name)
+        if match_cli:
+            version = int(match_cli.group(1))
             major_cli_version = version
-            cli_exec = file_path
+            cli_exec = file_path  # Mark the downloaded CLI file
+            print(f"\033[92m[+] CLI file downloaded: {cli_exec}\033[0m")
+        
+        # Check if the file name contains "patch"
+        if "patch" in file_name.lower():
+            patches_exec = file_path  # Mark the downloaded patches file
+            print(f"\033[92m[+] Patches file downloaded: {patches_exec}\033[0m")
+        
+        # Check if the file name contains "integration"
+        if "integration" in file_name.lower():
+            integration_exec = file_path  # Mark the downloaded integration file
+            print(f"\033[92m[+] Integration file downloaded: {integration_exec}\033[0m")
     else:
         print(f"\033[91m[-] Failed to download {file_name} from {repo_name} by {author}\033[0m")
 
