@@ -5,6 +5,13 @@ from bs4 import BeautifulSoup
 import subprocess
 
 def download_apk(package_name, app_url, type, dl_name, version, arch, dpi, package_os):
+    # Define request_header at the start of the function
+    request_header = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36",
+        "Authorization": "Basic YXBpLWFwa3VwZGF0ZXI6cm01cmNmcnVVakt5MDRzTXB5TVBKWFc4",
+        "Content-Type": "application/json",
+    }
+
     # Step 1: Determine version if not provided
     cli_exec = next((f for f in os.listdir('download_cli') if 'cli' in f and f.endswith('.jar')), None)
     patches_exec = next((f for f in os.listdir('download_cli') if 'patches' in f and f.endswith('.jar')), None)
@@ -44,12 +51,6 @@ def download_apk(package_name, app_url, type, dl_name, version, arch, dpi, packa
 
     # Step 2: Handle "latest" version
     if version == "latest":
-        request_header = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36",
-            "Authorization": "Basic YXBpLWFwa3VwZGF0ZXI6cm01cmNmcnVVakt5MDRzTXB5TVBKWFc4",
-            "Content-Type": "application/json",
-        }
-        
         response = requests.get(app_url, headers=request_header)
         soup = BeautifulSoup(response.text, 'html.parser')
         
