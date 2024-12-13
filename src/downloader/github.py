@@ -11,21 +11,6 @@ def download_file(url, file_name, repo_name, author):
         with open(file_path, 'wb') as f:
             f.write(response.content)
         print(f"\033[92m[+] Downloaded {file_name} from {repo_name} by {author}\033[0m")
-
-        if file_name.endswith(".json"):
-            print(f"\033[92m[+] JSON file downloaded: {file_path}\033[0m")
-
-        match_cli = re.match(r'^revanced-cli-(\d+)\.\d+\.\d+-.*\.jar$', file_name)
-        if match_cli:
-            version = int(match_cli.group(1))
-            print(f"\033[92m[+] Major cli version downloaded: {version}\033[0m")
-            print(f"\033[92m[+] CLI file downloaded: {file_path}\033[0m")
-
-        if "patch" in file_name.lower() and not file_name.endswith(".json"):
-            print(f"\033[92m[+] Patches file downloaded: {file_path}\033[0m")
-
-        if "integration" in file_name.lower():
-            print(f"\033[92m[+] Integration file downloaded: {file_path}\033[0m")
     else:
         print(f"\033[91m[-] Failed to download {file_name} from {repo_name} by {author}\033[0m")
 
