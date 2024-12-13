@@ -1,61 +1,63 @@
 import os
 import json
 import subprocess
+import re
 
-def download_apk(package_name, app_url, type, dl_name, version, arch, dpi, package_os):
-    # Find the CLI executable
-    cli_exec = next((f for f in os.listdir('download_cli') if 'cli' in f and f.endswith('.jar')), None)
-    if not cli_exec:
-        raise FileNotFoundError("CLI executable not found in download_cli folder")
+def download_apk(package_name, app_url, app_type, dl_name, version, arch, dpi, package_os):
+    cli_exec = None
+    major_cli_version = None
+    patches_exec = None
+    json_exec = None
 
-    # Find patches file (now could be .rvp)
-    patches_exec = next((f for f in os.listdir('download_cli') if 'patch' in f.lower() and not f.endswith('.json')), None)
-    # Find JSON file (adjust if the name has changed)
-    json_exec = next((f for f in os.listdir('download_cli') if f.endswith('.json')), None)
+    # Step 1: Locate files
+    for file_name in os.listdir('download_cli'):
+        file_path = os.path.join('download_cli', file_name)
+        if 'cli' in file_name and file_name.endswith('.jar'):
+            cli_exec = file_path
+            major_cli_version = int(file_name.split('-')[1].split('.')[0])
+        elif 'patch' in file_name and file_name.endswith('.jar') and not file_name.endswith('.json'):
+            patches_exec = file_path
+        elif file_name.endswith('.json'):
+            json_exec = file_path
 
-    if not patches_exec or not json_exec:
-        raise FileNotFoundError("Patches or JSON file not found in download_cli folder")
+    # Validate required files are found
+    if not cli_exec or not patches_exec or not json_exec:
+        raise FileNotFoundError("Required files (CLI, patches, or JSON) are missing in the 'download_cli' directory.")
 
-    cli_exec = os.path.join('download_cli', cli_exec)
-    patches_exec = os.path.join('download_cli', patches_exec)
-    json_exec = os.path.join('download_cli', json_exec)
-
-    # Step 1: Determine version if not provided
-    if not version:
+    # Step 2: Determine the version
+    if not version:  # If the global version is blank
         if major_cli_version >= 5:
-            # Run Java command to list patches with versions
-            result = subprocess.run(['java', '-jar', cli_exec, 'list-patches', '--with-packages', '--with-versions', patches_exec], 
-                                     capture_output=True, text=True)
-            lines = result.stdout.splitlines()
-            package_found = False
-            max_version = "0.0.0"
-            
-            for line in lines:
-                if line.strip().startswith("Package name:") and package_name in line:
-                    package_found = True
-                elif package_found and line.strip().startswith("Compatible versions:"):
-                    versions = line.split(':', 1)[1].strip().split()
-                    for v in versions:
-                        if v > max_version:
-                            max_version = v
-                    package_found = False
-            
-            version = max_version if max_version != "0.0.0" else "latest"
+            # Run the CLI command
+            command = f"java -jar {cli_exec} list-patches --with-packages --with-versions {patches_exec}"
+            result = subprocess.run(command, shell=True, capture_output=True, text=True)
+            output = result.stdout
 
-        else:  # CLI version <= 4, use JSON data
+            # Parse the output to find the latest compatible version
+            version_pattern = re.compile(rf"Compatible versions:\n(?:\s+{package_name}\s+Versions:\n)?(?:\s+\d+\.\d+\.\d+\n)*")
+            matches = version_pattern.findall(output)
+
+            if matches:
+                versions = [v.strip() for v in matches[-1].split() if re.match(r"\d+\.\d+\.\d+", v)]
+                version = max(versions, key=lambda x: list(map(int, x.split('.')))) if versions else 'latest'
+            else:
+                version = 'latest'
+        else:
+            # Parse the JSON file for compatible versions
             with open(json_exec, 'r') as json_file:
-                data = json.load(json_file)
-            max_version = "0.0.0"
-            for entry in data:
-                if 'compatiblePackages' in entry:
-                    for package in entry['compatiblePackages']:
-                        if package['name'] == package_name:
-                            for v in package['versions']:
-                                if v > max_version:
-                                    max_version = v
-            version = max_version if max_version != "0.0.0" else "latest"
+                json_data = json.load(json_file)
 
-    # Here you would continue with the APK download logic based on the determined version
-    print(f"Downloading APK: package_name={package_name}, version={version}, app_url={app_url}, type={type}, dl_name={dl_name}, arch={arch}, dpi={dpi}, package_os={package_os}")
+            compatible_versions = []
+            for entry in json_data:
+                for package in entry.get('compatiblePackages', []):
+                    if package.get('name') == package_name:
+                        compatible_versions.extend(package.get('versions', []))
 
-    # Note: Further implementation for downloading APK would go here
+            if compatible_versions:
+                version = max(compatible_versions, key=lambda x: list(map(int, x.split('.'))))
+            else:
+                version = 'latest'
+
+    # Output the determined version
+    print(f"Determined version: {version}")
+
+    # Further steps for downloading the APK would go here...
