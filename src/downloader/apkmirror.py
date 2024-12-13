@@ -3,8 +3,7 @@ import re
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
-
-from downloader.github import major_cli_version, cli_exec, patches_exec, json_exec
+import json
 
 # Global imports
 from downloader.github import major_cli_version, cli_exec, patches_exec, json_exec
@@ -43,9 +42,18 @@ def download_apk(package_name, app_url, type, dl_name, version, arch, dpi, os):
                 except FileNotFoundError:
                     print(f"Error: The JSON file at {json_exec} could not be found.")
                     version = 'latest'
+                except json.JSONDecodeError:
+                    print(f"Error: The JSON file at {json_exec} is not valid JSON.")
+                    version = 'latest'
             else:
-                print("Error: json_exec is None, cannot proceed with JSON file.")
+                print("Error: json_exec is None, cannot proceed with JSON file. Setting version to 'latest'.")
                 version = 'latest'
+                # Here you might want to either stop the function or continue with a default behavior
+
+    # ... Rest of the function remains the same ...
+
+# Example usage:
+# download_apk("com.google.android.youtube", "https://www.apkmirror.com/apk/google-inc/youtube/", "apk", "youtube.apk", "", "arm64-v8a", "nodpi", "Android 8.0+")
     
     # Step 2: If version is 'latest', fetch from APKMirror
     if version == 'latest':
