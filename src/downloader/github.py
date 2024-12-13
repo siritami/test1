@@ -3,9 +3,10 @@ import os
 import re
 
 major_cli_version = None
+cli_exec = None
 
 def download_file(url, file_name, repo_name, author):
-    global major_cli_version
+    global major_cli_version, cli_exec
     
     dir_path = "/download_cli"
     os.makedirs(dir_path, exist_ok=True)
@@ -20,6 +21,7 @@ def download_file(url, file_name, repo_name, author):
         if match:
             version = int(match.group(1))
             major_cli_version = version
+            cli_exec = file_path
     else:
         print(f"\033[91m[-] Failed to download {file_name} from {repo_name} by {author}\033[0m")
 
