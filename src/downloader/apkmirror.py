@@ -6,6 +6,8 @@ from urllib.parse import urljoin
 
 from downloader.github import major_cli_version, cli_exec, patches_exec, json_exec
 
+# Global imports
+from downloader.github import major_cli_version, cli_exec, patches_exec, json_exec
 
 def download_apk(package_name, app_url, type, dl_name, version, arch, dpi, os):
     # Step 1: Find version
@@ -25,17 +27,25 @@ def download_apk(package_name, app_url, type, dl_name, version, arch, dpi, os):
             else:
                 version = 'latest'
         else:
-            # For cli version <= 4 or if major_cli_version is not numeric, use JSON file
-            with open(json_exec, 'r') as file:
-                data = json.load(file)
-                for item in data:
-                    for package in item.get('compatiblePackages', []):
-                        if package.get('name') == package_name:
-                            version_list = package.get('versions', [])
-                            version = max(version_list, key=lambda v: tuple(map(int, v.split('.'))), default='latest')
-                            break
-                    if version != 'latest':
-                        break
+            # Check if json_exec is not None before trying to open the file
+            if json_exec is not None:
+                try:
+                    with open(json_exec, 'r') as file:
+                        data = json.load(file)
+                        for item in data:
+                            for package in item.get('compatiblePackages', []):
+                                if package.get('name') == package_name:
+                                    version_list = package.get('versions', [])
+                                    version = max(version_list, key=lambda v: tuple(map(int, v.split('.'))), default='latest')
+                                    break
+                            if version != 'latest':
+                                break
+                except FileNotFoundError:
+                    print(f"Error: The JSON file at {json_exec} could not be found.")
+                    version = 'latest'
+            else:
+                print("Error: json_exec is None, cannot proceed with JSON file.")
+                version = 'latest'
     
     # Step 2: If version is 'latest', fetch from APKMirror
     if version == 'latest':
