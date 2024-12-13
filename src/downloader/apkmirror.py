@@ -2,9 +2,9 @@ import os
 import requests
 from bs4 import BeautifulSoup
 import json
+import sys
 
-script_dir = os.path.dirname(__file__)
-src_dir = os.path.abspath(os.path.join(script_dir, '..', '..', 'src'))
+src_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(src_dir)
 
 from downloader.github import major_cli_version, cli_exec, patches_exec, json_exec
