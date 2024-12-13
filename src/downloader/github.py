@@ -27,7 +27,7 @@ def dl_gh(repo_name, author, tag):
         response.raise_for_status()
         releases = response.json()
     except requests.RequestException as e:
-        print(f"\033[91m[-] Failed to request github: {e}\033[0m")
+        print(f"\033[91m[-] Failed to request GitHub: {e}\033[0m")
         return
 
     if tag in ("latest", "prerelease"):

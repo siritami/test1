@@ -8,11 +8,9 @@ def download_apk(package_name, app_url, type, dl_name, version, arch, dpi, packa
     if not cli_exec:
         raise FileNotFoundError("CLI executable not found in download_cli folder")
 
-    # Extract major version of CLI
-    major_cli_version = int(cli_exec.split('-')[2].split('.')[0])
-
-    # Find patches and JSON files
-    patches_exec = next((f for f in os.listdir('download_cli') if 'patch' in f and not f.endswith('.json')), None)
+    # Find patches file (now could be .rvp)
+    patches_exec = next((f for f in os.listdir('download_cli') if 'patch' in f.lower() and not f.endswith('.json')), None)
+    # Find JSON file (adjust if the name has changed)
     json_exec = next((f for f in os.listdir('download_cli') if f.endswith('.json')), None)
 
     if not patches_exec or not json_exec:
