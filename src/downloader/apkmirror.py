@@ -21,7 +21,7 @@ def download_apk(package_name, app_url, app_type, dl_name, version, arch, dpi, p
                 print(f"Identified CLI file: {file_name}, major version: {major_cli_version}")
             except AttributeError:
                 raise ValueError(f"Unable to determine major version from CLI file name: {file_name}")
-        elif 'patch' in file_name and file_name.endswith('.jar') and not file_name.endswith('.json'):
+        elif 'patch' in file_name and file_name.endswith('.jar'):
             patches_exec = file_path
             print(f"Identified patches file: {file_name}")
         elif file_name.endswith('.json'):
@@ -32,9 +32,9 @@ def download_apk(package_name, app_url, app_type, dl_name, version, arch, dpi, p
     if not cli_exec:
         print("Error: CLI file is missing.")
     if not patches_exec:
-        print("Error: Patches file is missing.")
+        print("Error: Patches file is missing. Ensure a valid patches file is present.")
     if not json_exec:
-        print("Error: JSON file is missing.")
+        print("Error: JSON file is missing. Ensure a valid JSON file is present.")
 
     if not cli_exec or not patches_exec or not json_exec:
         raise FileNotFoundError("Required files (CLI, patches, or JSON) are missing in the 'download_cli' directory.")
