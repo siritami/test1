@@ -87,12 +87,3 @@ def dl_gh(repo_name, author, tag):
                     download_file(download_url, file_name, repo_name, author)
         else:
             print(f"\033[93m[?] No release found. Check input\033[0m")
-
-def reset_cli_value():
-    global major_cli_version, cli_exec, patches_exec, integration_exec, json_exec
-    major_cli_version = None
-    cli_exec = None
-    patches_exec = None
-    integration_exec = None
-    json_exec = None
-    print("Variables have been reset.")

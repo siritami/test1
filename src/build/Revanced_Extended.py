@@ -13,7 +13,6 @@ dl_gh("revanced-patches", "ReVanced", "latest")
 dl_gh("revanced-cli", "ReVanced", "latest")
 dl_gh("revanced-integrations", "ReVanced", "latest")
 
-# Now import the variables after they have been potentially set by dl_gh calls
 from downloader.github import major_cli_version, cli_exec, patches_exec, json_exec
 
 # Call download_apk after all necessary files have been downloaded

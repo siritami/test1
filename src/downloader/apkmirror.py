@@ -4,7 +4,7 @@ import subprocess
 import json
 import re
 
-from downloader.github import major_cli_version, cli_exec, patches_exec, json_exec
+from build.Revanced_Extended import major_cli_version, cli_exec, patches_exec, json_exec
 
 def download_apk(package_name, app_url, _type, dl_name, version, arch, dpi, os):
     # Step 1: Determine the correct version
