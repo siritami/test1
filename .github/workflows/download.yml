@@ -16,7 +16,9 @@ jobs:
         with:
           python-version: 3.11
       - name: Preparing
+        shell: pwsh
         run: |
+          src\etc\setup_jdk.ps1
           pip install -r requirements.txt
       - name: Download
         run: python src\build\Revanced_Extended.py
