@@ -6,10 +6,12 @@ from urllib.parse import urljoin
 
 from downloader.github import major_cli_version, cli_exec, patches_exec, json_exec
 
+
 def download_apk(package_name, app_url, type, dl_name, version, arch, dpi, os):
     # Step 1: Find version
     if not version:
-        if major_cli_version >= 5:
+        # Check if major_cli_version is numeric before comparison
+        if isinstance(major_cli_version, (int, float)) and major_cli_version >= 5:
             command = f"java -jar {cli_exec} list-patches --with-packages --with-versions {patches_exec}"
             output = os.popen(command).read()
             
@@ -23,7 +25,7 @@ def download_apk(package_name, app_url, type, dl_name, version, arch, dpi, os):
             else:
                 version = 'latest'
         else:
-            # For cli version <= 4, use JSON file
+            # For cli version <= 4 or if major_cli_version is not numeric, use JSON file
             with open(json_exec, 'r') as file:
                 data = json.load(file)
                 for item in data:
