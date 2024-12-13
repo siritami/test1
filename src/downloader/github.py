@@ -6,9 +6,10 @@ major_cli_version = None
 cli_exec = None
 patches_exec = None
 integration_exec = None
+json_exec = None 
 
 def download_file(url, file_name, repo_name, author):
-    global major_cli_version, cli_exec, patches_exec, integration_exec
+    global major_cli_version, cli_exec, patches_exec, integration_exec, json_files
     dir_path = "download_cli"
     os.makedirs(dir_path, exist_ok=True)
     response = requests.get(url)
@@ -17,6 +18,11 @@ def download_file(url, file_name, repo_name, author):
         with open(file_path, 'wb') as f:
             f.write(response.content)
         print(f"\033[92m[+] Downloaded {file_name} from {repo_name} by {author}\033[0m")
+
+        if file_name.endswith(".json"):
+            json_exec = file_path
+            print(f"\033[92m[+] JSON file downloaded: {json_exec}\033[0m")
+
         match_cli = re.match(r'^revanced-cli-(\d+)\.\d+\.\d+-.*\.jar$', file_name)
         if match_cli:
             version = int(match_cli.group(1))
@@ -24,9 +30,11 @@ def download_file(url, file_name, repo_name, author):
             cli_exec = file_path
             print(f"\033[92m[+] Major cli version downloaded: {major_cli_version}\033[0m")
             print(f"\033[92m[+] CLI file downloaded: {cli_exec}\033[0m")
+
         if "patch" in file_name.lower():
             patches_exec = file_path
             print(f"\033[92m[+] Patches file downloaded: {patches_exec}\033[0m")
+
         if "integration" in file_name.lower():
             integration_exec = file_path
             print(f"\033[92m[+] Integration file downloaded: {integration_exec}\033[0m")
