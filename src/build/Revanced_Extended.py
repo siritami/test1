@@ -11,4 +11,5 @@ from downloader.apkmirror import download_apk
 dl_gh("revanced-patches", "ReVanced", "latest")
 dl_gh("revanced-cli", "ReVanced", "latest")
 dl_gh("revanced-integrations", "ReVanced", "latest")
+from downloader.github import major_cli_version, cli_exec, patches_exec, json_exec
 download_apk("com.google.android.youtube", "https://www.apkmirror.com/apk/google-inc/youtube/youtube-19-47-41-release/", "apk", "youtube", "", "", "", "")
