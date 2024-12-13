@@ -27,7 +27,7 @@ jobs:
         uses: ncipollo/release-action@v1.14.0
         with:
           artifacts: |
-            download_cli\*
+            download_apk\*
           name: Revanced & Revanced Extended
           tag: all
           body: "Hello"
