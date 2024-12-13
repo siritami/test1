@@ -3,7 +3,10 @@ import requests
 from bs4 import BeautifulSoup
 import json
 
-# Global imports
+script_dir = os.path.dirname(__file__)
+src_dir = os.path.abspath(os.path.join(script_dir, '..', '..', 'src'))
+sys.path.append(src_dir)
+
 from downloader.github import major_cli_version, cli_exec, patches_exec, json_exec
 
 def download_apk(package_name, app_url, type, dl_name, version, arch, dpi, os):
