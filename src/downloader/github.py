@@ -19,12 +19,10 @@ def download_file(url, file_name, repo_name, author):
             f.write(response.content)
         print(f"\033[92m[+] Downloaded {file_name} from {repo_name} by {author}\033[0m")
 
-        # Handle JSON files
         if file_name.endswith(".json"):
-            json_exec = file_path  # Update global json_exec with the JSON file path
+            json_exec = file_path
             print(f"\033[92m[+] JSON file downloaded: {json_exec}\033[0m")
 
-        # Handle revanced-cli .jar files
         match_cli = re.match(r'^revanced-cli-(\d+)\.\d+\.\d+-.*\.jar$', file_name)
         if match_cli:
             version = int(match_cli.group(1))
@@ -33,12 +31,10 @@ def download_file(url, file_name, repo_name, author):
             print(f"\033[92m[+] Major cli version downloaded: {major_cli_version}\033[0m")
             print(f"\033[92m[+] CLI file downloaded: {cli_exec}\033[0m")
 
-        # Handle patch files (ensure we don't mix with JSON)
         if "patch" in file_name.lower() and not file_name.endswith(".json"):
             patches_exec = file_path
             print(f"\033[92m[+] Patches file downloaded: {patches_exec}\033[0m")
 
-        # Handle integration files
         if "integration" in file_name.lower():
             integration_exec = file_path
             print(f"\033[92m[+] Integration file downloaded: {integration_exec}\033[0m")
@@ -91,3 +87,12 @@ def dl_gh(repo_name, author, tag):
                     download_file(download_url, file_name, repo_name, author)
         else:
             print(f"\033[93m[?] No release found. Check input\033[0m")
+
+def reset_cli_value():
+    global major_cli_version, cli_exec, patches_exec, integration_exec, json_exec
+    major_cli_version = None
+    cli_exec = None
+    patches_exec = None
+    integration_exec = None
+    json_exec = None
+    print("Variables have been reset.")
