@@ -85,16 +85,18 @@ def dl_yt(json_exec):
     # Find the highest version for com.google.android.youtube
     max_version = '0.0.0'
     for entry in data:
-        for package in entry.get('compatiblePackages', []):
-            if package.get('name') == 'com.google.android.youtube':
-                for version in package.get('versions', []):
-                    if version > max_version:
-                        max_version = version
+        # Check if 'compatiblePackages' exists and is not None before iterating
+        if 'compatiblePackages' in entry and entry['compatiblePackages'] is not None:
+            for package in entry['compatiblePackages']:
+                if package.get('name') == 'com.google.android.youtube':
+                    for version in package.get('versions', []):
+                        if version > max_version:
+                            max_version = version
 
     # Convert version format
     yt_version = max_version.replace('.', '-')
 
-    # Fetch the first page
+    # Rest of the function remains the same
     url = f"https://www.apkmirror.com/apk/google-inc/youtube/youtube-{yt_version}-release/"
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
