@@ -78,78 +78,77 @@ def dl_gh(repo_name, author, tag):
             print(f"\033[93m[?] No release found. Check input\033[0m")
 
 def dl_yt(json_exec):
-    # Load JSON data
-    with open(json_exec, 'r') as json_file:
-        data = json.load(json_file)
-    
-    # Initialize variables for highest version and formatted version
+    # Step 1: Read and Parse the JSON File
+    with open(json_exec, 'r') as file:
+        data = json.load(file)
+
+    # Step 2: Find the highest version for com.google.android.youtube
     highest_version = None
-    formatted_version = None
-    
-    # Iterate through each item in JSON data
     for item in data:
-        compatible_packages = item.get('compatiblePackages')
-        if compatible_packages and isinstance(compatible_packages, list):
-            for pkg in compatible_packages:
-                if pkg.get('name') == 'com.google.android.youtube':
-                    versions = pkg.get('versions', [])
-                    if versions:
-                        # Find the highest version number
-                        current_highest = max(versions, key=lambda x: tuple(int(v) for v in x.split('.')))
-                        if highest_version is None or current_highest > highest_version:
-                            highest_version = current_highest
-    
-    if highest_version:
-        # Format version number (replace dots with dashes)
-        formatted_version = highest_version.replace('.', '-')
-        print(f"Found highest version: {formatted_version}")
-        
-        # Construct URL for APKMirror
-        url = f"https://www.apkmirror.com/apk/google-inc/youtube/youtube-{formatted_version}-release/"
-        
-        try:
-            # Fetch HTML content of the URL
-            response = requests.get(url)
+        if item['compatiblePackages'] and item['compatiblePackages'][0]['name'] == 'com.google.android.youtube':
+            versions = item['compatiblePackages'][0]['versions']
+            if versions:
+                current_version = versions[-1]  # Get the highest version
+                if highest_version is None or current_version > highest_version:
+                    highest_version = current_version
+
+    if highest_version is None:
+        raise ValueError("No compatible version found for com.google.android.youtube")
+
+    # Step 3: Convert version format
+    yt_version = highest_version.replace('.', '-')
+
+    # Step 4: Scrape the web page to find the download link
+    base_url = "https://www.apkmirror.com"
+    version_url = f"{base_url}/apk/google-inc/youtube/youtube-{yt_version}-release/"
+
+    response = requests.get(version_url)
+    soup = BeautifulSoup(response.content, 'html.parser')
+
+    # Find the div with the specified class
+    div = soup.find('div', class_='table-cell rowheight addseparator expand pad dowrap')
+    if div:
+        a_tag = div.find('a', class_='accent_color')
+        if a_tag and 'href' in a_tag.attrs:
+            href = a_tag['href']
+            download_page_url = base_url + href
+
+            # Go to the download page
+            response = requests.get(download_page_url)
             soup = BeautifulSoup(response.content, 'html.parser')
-            
-            # Find the download link
-            download_link = None
-            link_divs = soup.find_all('div', class_='table-cell rowheight addseparator expand pad dowrap')
-            for div in link_divs:
-                badge = div.find('span', class_='apkm-badge', text='BUNDLE')
-                if badge:
-                    download_link = div.find('a', class_='accent_color')['href']
-                    break
-            
-            if download_link:
-                print(f"Found download link: {download_link}")
-                
-                # Follow the download link to get the final download URL
-                download_url = f"https://www.apkmirror.com{download_link}"
-                response_dl = requests.get(download_url)
-                soup_dl = BeautifulSoup(response_dl.content, 'html.parser')
-                
+
+            # Find the download button
+            download_button = soup.find('a', class_=re.compile(r'accent_bg btn btn-flat downloadButton'))
+            if download_button and 'href' in download_button.attrs:
+                href = download_button['href']
+                final_download_page_url = base_url + href
+
+                # Go to the final download page
+                response = requests.get(final_download_page_url)
+                soup = BeautifulSoup(response.content, 'html.parser')
+
                 # Find the final download link
-                final_download_link = soup_dl.find('a', id='download-link')['href']
-                if final_download_link:
-                    print(f"Final download link found: {final_download_link}")
-                    
-                    # Download the APK file
-                    apk_response = requests.get(final_download_link, allow_redirects=True)
-                    if apk_response.status_code == 200:
-                        # Save the APK file
-                        with open('download/youtube.apkm', 'wb') as apk_file:
-                            apk_file.write(apk_response.content)
-                        print("APK file downloaded successfully.")
-                    else:
-                        print("Failed to download APK file.")
-                else:
-                    print("Final download link not found.")
-            else:
-                print("Download link not found.")
-        
-        except requests.RequestException as e:
-            print(f"Error fetching APKMirror page: {e}")
+                final_download_link = soup.find('a', id='download-link')
+                if final_download_link and 'href' in final_download_link.attrs:
+                    href = final_download_link['href']
+                    final_url = base_url + href
+
+                    # Step 5: Download the file
+                    download_folder = "download"
+                    if not os.path.exists(download_folder):
+                        os.makedirs(download_folder)
+
+                    file_path = os.path.join(download_folder, "youtube.apkm")
+                    with requests.get(final_url, stream=True) as r:
+                        r.raise_for_status()
+                        with open(file_path, 'wb') as f:
+                            for chunk in r.iter_content(chunk_size=8192):
+                                f.write(chunk)
+
+                    print(f"File downloaded and saved as {file_path}")
+                    return file_path
+
+    raise Exception("Failed to find the download link.")
 
 
 dl_gh("revanced-patches", "inotia00", "latest")
