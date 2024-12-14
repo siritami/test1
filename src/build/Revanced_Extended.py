@@ -159,4 +159,4 @@ def dl_yt(json_exec):
 dl_gh("revanced-patches", "inotia00", "latest")
 dl_gh("revanced-cli", "inotia00", "latest")
 
-dl_yt()
+dl_yt(json_exec)
