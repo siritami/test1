@@ -85,8 +85,11 @@ def dl_yt(json_exec):
     # Find the highest version for com.google.android.youtube
     yt_versions = []
     for entry in data:
-        for package in entry.get("compatiblePackages", []):
-            if package["name"] == "com.google.android.youtube":
+        compatible_packages = entry.get("compatiblePackages", [])
+        if compatible_packages is None:
+            continue
+        for package in compatible_packages:
+            if package.get("name") == "com.google.android.youtube":
                 yt_versions.extend(package.get("versions", []))
 
     if not yt_versions:
@@ -152,6 +155,7 @@ def dl_yt(json_exec):
         f.write(download_response.content)
 
     print(f"Downloaded file saved to {file_path}")
+
 
 dl_gh("revanced-patches", "inotia00", "latest")
 dl_gh("revanced-cli", "inotia00", "latest")
