@@ -88,8 +88,9 @@ def dl_yt(json_exec):
     
     # Iterate through each item in JSON data
     for item in data:
-        if 'compatiblePackages' in item:
-            for pkg in item['compatiblePackages']:
+        compatible_packages = item.get('compatiblePackages')
+        if compatible_packages and isinstance(compatible_packages, list):
+            for pkg in compatible_packages:
                 if pkg.get('name') == 'com.google.android.youtube':
                     versions = pkg.get('versions', [])
                     if versions:
@@ -149,6 +150,7 @@ def dl_yt(json_exec):
         
         except requests.RequestException as e:
             print(f"Error fetching APKMirror page: {e}")
+
 
 dl_gh("revanced-patches", "inotia00", "latest")
 dl_gh("revanced-cli", "inotia00", "latest")
