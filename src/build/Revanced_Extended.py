@@ -78,92 +78,66 @@ def dl_gh(repo_name, author, tag):
             print(f"\033[93m[?] No release found. Check input\033[0m")
 
 def dl_yt(json_exec):
-    with open(json_exec, 'r') as f:
-        data = json.load(f)
-    yt_version = None
+    # Read JSON file
+    with open(json_exec, 'r') as file:
+        data = json.load(file)
+
+    # Find the highest version for com.google.android.youtube
+    max_version = '0.0.0'
     for entry in data:
         for package in entry.get('compatiblePackages', []):
-            if package['name'] == 'com.google.android.youtube':
-                versions = package['versions']
-                highest_version = max(versions, key=lambda v: list(map(int, v.split('.'))))
-                yt_version = highest_version.replace('.', '-')
-                break
-        if yt_version:
-            break
-    if not yt_version:
-        print("No valid version found for YouTube package.")
-        return
-    print(f"Selected YouTube version: {yt_version}")
+            if package.get('name') == 'com.google.android.youtube':
+                for version in package.get('versions', []):
+                    if version > max_version:
+                        max_version = version
 
+    # Convert version format
+    yt_version = max_version.replace('.', '-')
 
-    base_url = "https://www.apkmirror.com"
-    yt_url = f"{base_url}/apk/google-inc/youtube/youtube-{yt_version}-release/"
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36"
-    }
-
-    # Step 1: Load the YouTube version page
-    response = requests.get(yt_url, headers=headers)
-    if response.status_code != 200:
-        raise Exception(f"Failed to load page: {yt_url}")
-
+    # Fetch the first page
+    url = f"https://www.apkmirror.com/apk/google-inc/youtube/youtube-{yt_version}-release/"
+    response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
 
-    # Step 2: Find the BUNDLE link
-    bundle_div = soup.find('div', class_='table-cell rowheight addseparator expand pad dowrap')
-    if not bundle_div:
-        raise Exception("Failed to find the bundle container.")
+    # Find the BUNDLE link
+    bundle_link = soup.find('span', class_='apkm-badge', text='BUNDLE')
+    if bundle_link:
+        apk_page_link = bundle_link.find_parent('a', class_='accent_color')
+        if apk_page_link:
+            apk_page_url = 'https://www.apkmirror.com' + apk_page_link['href']
+            apk_response = requests.get(apk_page_url)
+            apk_soup = BeautifulSoup(apk_response.text, 'html.parser')
 
-    bundle_link = bundle_div.find('a', class_='accent_color', href=True)
-    bundle_badge = bundle_div.find('span', class_='apkm-badge success', text=lambda x: "BUNDLE" in x if x else False)
+            # Find the download button
+            download_button = apk_soup.find('a', class_='accent_bg btn btn-flat downloadButton Pix')
+            if download_button:
+                download_page_link = download_button['href']
+                download_page_url = 'https://www.apkmirror.com' + download_page_link
+                download_response = requests.get(download_page_url)
+                download_soup = BeautifulSoup(download_response.text, 'html.parser')
 
-    if not bundle_link or not bundle_badge:
-        raise Exception("Failed to find the bundle link or badge.")
-
-    bundle_url = base_url + bundle_link['href']
-
-    # Step 3: Load the bundle page
-    response = requests.get(bundle_url, headers=headers)
-    if response.status_code != 200:
-        raise Exception(f"Failed to load bundle page: {bundle_url}")
-
-    soup = BeautifulSoup(response.text, 'html.parser')
-
-    # Step 4: Find the download button link
-    download_button = soup.find('a', class_='accent_bg btn btn-flat downloadButton Pix', href=True)
-    if not download_button:
-        raise Exception("Failed to find the download button.")
-
-    download_page_url = base_url + download_button['href']
-
-    # Step 5: Load the download page
-    response = requests.get(download_page_url, headers=headers)
-    if response.status_code != 200:
-        raise Exception(f"Failed to load download page: {download_page_url}")
-
-    soup = BeautifulSoup(response.text, 'html.parser')
-
-    # Step 6: Find the final download link
-    final_download_link = soup.find('a', id='download-link', href=True)
-    if not final_download_link:
-        raise Exception("Failed to find the final download link.")
-
-    final_url = base_url + final_download_link['href']
-
-    # Step 7: Download the file
-    response = requests.get(final_url, headers=headers, allow_redirects=True, stream=True)
-    if response.status_code != 200:
-        raise Exception("Failed to download the APKM file.")
-
-    # Save the file
-    os.makedirs('download', exist_ok=True)
-    file_path = os.path.join('download', 'youtube.apkm')
-    with open(file_path, 'wb') as file:
-        for chunk in response.iter_content(chunk_size=8192):
-            file.write(chunk)
-
-    print(f"File downloaded successfully and saved as {file_path}")
-
+                # Find the actual download link
+                final_download_link = download_soup.find('a', id='download-link')
+                if final_download_link:
+                    final_url = 'https://www.apkmirror.com' + final_download_link['href']
+                    # Download the file
+                    final_response = requests.get(final_url, allow_redirects=True)
+                    if final_response.status_code == 200:
+                        # Ensure the directory exists
+                        os.makedirs('download', exist_ok=True)
+                        with open('download/youtube.apkm', 'wb') as file:
+                            file.write(final_response.content)
+                        print("File downloaded successfully to 'download/youtube.apkm'")
+                    else:
+                        print("Failed to download the APK.")
+                else:
+                    print("Could not find the final download link.")
+            else:
+                print("Could not find the download button.")
+        else:
+            print("Could not find the link to the APK page.")
+    else:
+        print("Could not find a BUNDLE for the version.")
 
 dl_gh("revanced-patches", "inotia00", "latest")
 dl_gh("revanced-cli", "inotia00", "latest")
