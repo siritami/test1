@@ -3,6 +3,7 @@ import sys
 import os
 import requests
 import re
+from bs4 import BeautifulSoup
 
 cli_exec = None
 patches_exec = None
@@ -10,7 +11,7 @@ json_exec = None
 
 def download_file(url, file_name, repo_name, author):
     global cli_exec, patches_exec, json_exec
-    dir_path = "download_cli"
+    dir_path = "download"
     os.makedirs(dir_path, exist_ok=True)
     response = requests.get(url)
     if response.status_code == 200:
@@ -74,7 +75,88 @@ def dl_gh(repo_name, author, tag):
                     download_file(download_url, file_name, repo_name, author)
         else:
             print(f"\033[93m[?] No release found. Check input\033[0m")
+            
+            
+
+def dl_yt(json_exec):
+    # Load JSON data from the provided file
+    with open(json_exec, 'r') as f:
+        data = json.load(f)
+
+    # Find the highest version for the "com.google.android.youtube" package
+    yt_version = None
+    for entry in data:
+        for package in entry.get('compatiblePackages', []):
+            if package['name'] == 'com.google.android.youtube':
+                versions = package['versions']
+                highest_version = max(versions, key=lambda v: list(map(int, v.split('.'))))
+                yt_version = highest_version.replace('.', '-')
+                break
+        if yt_version:
+            break
+
+    if not yt_version:
+        print("No valid version found for YouTube package.")
+        return
+
+    print(f"Selected YouTube version: {yt_version}")
+
+    # Define the base URL and the search URL
+    base_url = "https://www.apkmirror.com"
+    search_url = f"{base_url}/apk/google-inc/youtube/youtube-{yt_version}-release/"
+
+    # Make the request to the first page
+    response = requests.get(search_url)
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+    # Find the link to the APK download page
+    download_page_relative_url = soup.find('a', class_='accent_color', href=True)
+    if not download_page_relative_url:
+        print("Download page not found.")
+        return
+
+    download_page_url = base_url + download_page_relative_url['href']
+    print(f"Navigating to download page: {download_page_url}")
+
+    # Make the request to the download page
+    response = requests.get(download_page_url)
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+    # Find the link to the actual download
+    download_link_relative_url = soup.find('a', class_='accent_bg btn btn-flat downloadButton Pix', href=True)
+    if not download_link_relative_url:
+        print("Download link not found.")
+        return
+
+    download_link_url = base_url + download_link_relative_url['href']
+    print(f"Navigating to actual download: {download_link_url}")
+
+    # Make the request to the final download page
+    response = requests.get(download_link_url)
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+    # Find the actual download link
+    final_download_link_relative_url = soup.find('a', id='download-link', href=True)
+    if not final_download_link_relative_url:
+        print("Final download link not found.")
+        return
+
+    final_download_url = base_url + final_download_link_relative_url['href']
+    print(f"Redirecting to final download URL: {final_download_url}")
+
+    # Download the APK file
+    response = requests.get(final_download_url, allow_redirects=True)
+    
+    # Save the file
+    download_path = os.path.join('download', 'youtube.apkm')
+    os.makedirs(os.path.dirname(download_path), exist_ok=True)
+    with open(download_path, 'wb') as f:
+        f.write(response.content)
+    
+    print(f"APK downloaded and saved as {download_path}")
 
 
 dl_gh("revanced-patches", "inotia00", "latest")
 dl_gh("revanced-cli", "inotia00", "latest")
+
+dl_yt()
