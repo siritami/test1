@@ -78,6 +78,8 @@ def dl_gh(repo_name, author, tag):
             print(f"\033[93m[?] No release found. Check input\033[0m")
 
 
+import json
+
 def dl_yt(json_exec):
     # Load the JSON data from the file
     with open(json_exec, 'r') as file:
@@ -88,19 +90,26 @@ def dl_yt(json_exec):
 
     # Iterate over the entries in the JSON file
     for item in data:
-        for package in item.get("compatiblePackages", []):
-            if package["name"] == "com.google.android.youtube":
-                # Compare versions to find the highest one
-                for version in package["versions"]:
-                    if highest_version is None or version > highest_version:
-                        highest_version = version
+        # Ensure that 'compatiblePackages' is a list and exists
+        compatible_packages = item.get("compatiblePackages", [])
+        if isinstance(compatible_packages, list):
+            for package in compatible_packages:
+                if package.get("name") == "com.google.android.youtube":
+                    # Compare versions to find the highest one
+                    for version in package.get("versions", []):
+                        if highest_version is None or version > highest_version:
+                            highest_version = version
     
     # Format the version by replacing '.' with '-'
     if highest_version:
         yt_version = highest_version.replace('.', '-')
 
     # Output the final result
-    print(f"yt_version: {yt_version}")
+    if yt_version:
+        print(f"yt_version: {yt_version}")
+    else:
+        print("No compatible version found.")
+    
     return yt_version
 
 
