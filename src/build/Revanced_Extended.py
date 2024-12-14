@@ -78,11 +78,8 @@ def dl_gh(repo_name, author, tag):
             print(f"\033[93m[?] No release found. Check input\033[0m")
 
 def dl_yt(json_exec):
-    # Load JSON data from the provided file
     with open(json_exec, 'r') as f:
         data = json.load(f)
-
-    # Find the highest version for the "com.google.android.youtube" package
     yt_version = None
     for entry in data:
         for package in entry.get('compatiblePackages', []):
@@ -93,66 +90,79 @@ def dl_yt(json_exec):
                 break
         if yt_version:
             break
-
     if not yt_version:
         print("No valid version found for YouTube package.")
         return
-
     print(f"Selected YouTube version: {yt_version}")
 
-    # Define the base URL and the search URL
+
     base_url = "https://www.apkmirror.com"
-    search_url = f"{base_url}/apk/google-inc/youtube/youtube-{yt_version}-release/"
+    yt_url = f"{base_url}/apk/google-inc/youtube/youtube-{yt_version}-release/"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36"
+    }
 
-    # Make the request to the first page
-    response = requests.get(search_url)
+    # Step 1: Load the YouTube version page
+    response = requests.get(yt_url, headers=headers)
+    if response.status_code != 200:
+        raise Exception(f"Failed to load page: {yt_url}")
+
     soup = BeautifulSoup(response.text, 'html.parser')
 
-    # Find the link to the APK download page
-    download_page_relative_url = soup.find('a', class_='accent_color', href=True)
-    if not download_page_relative_url:
-        print("Download page not found.")
-        return
+    # Step 2: Find the BUNDLE link
+    bundle_div = soup.find('div', class_='table-cell rowheight addseparator expand pad dowrap')
+    if not bundle_div:
+        raise Exception("Failed to find the bundle container.")
 
-    download_page_url = base_url + download_page_relative_url['href']
-    print(f"Navigating to download page: {download_page_url}")
+    bundle_link = bundle_div.find('a', class_='accent_color', href=True)
+    bundle_badge = bundle_div.find('span', class_='apkm-badge success', text=lambda x: "BUNDLE" in x if x else False)
 
-    # Make the request to the download page
-    response = requests.get(download_page_url)
+    if not bundle_link or not bundle_badge:
+        raise Exception("Failed to find the bundle link or badge.")
+
+    bundle_url = base_url + bundle_link['href']
+
+    # Step 3: Load the bundle page
+    response = requests.get(bundle_url, headers=headers)
+    if response.status_code != 200:
+        raise Exception(f"Failed to load bundle page: {bundle_url}")
+
     soup = BeautifulSoup(response.text, 'html.parser')
 
-    # Find the link to the actual download
-    download_link_relative_url = soup.find('a', class_='accent_bg btn btn-flat downloadButton Pix', href=True)
-    if not download_link_relative_url:
-        print("Download link not found.")
-        return
+    # Step 4: Find the download button link
+    download_button = soup.find('a', class_='accent_bg btn btn-flat downloadButton Pix', href=True)
+    if not download_button:
+        raise Exception("Failed to find the download button.")
 
-    download_link_url = base_url + download_link_relative_url['href']
-    print(f"Navigating to actual download: {download_link_url}")
+    download_page_url = base_url + download_button['href']
 
-    # Make the request to the final download page
-    response = requests.get(download_link_url)
+    # Step 5: Load the download page
+    response = requests.get(download_page_url, headers=headers)
+    if response.status_code != 200:
+        raise Exception(f"Failed to load download page: {download_page_url}")
+
     soup = BeautifulSoup(response.text, 'html.parser')
 
-    # Find the actual download link
-    final_download_link_relative_url = soup.find('a', id='download-link', href=True)
-    if not final_download_link_relative_url:
-        print("Final download link not found.")
-        return
+    # Step 6: Find the final download link
+    final_download_link = soup.find('a', id='download-link', href=True)
+    if not final_download_link:
+        raise Exception("Failed to find the final download link.")
 
-    final_download_url = base_url + final_download_link_relative_url['href']
-    print(f"Redirecting to final download URL: {final_download_url}")
+    final_url = base_url + final_download_link['href']
 
-    # Download the APK file
-    response = requests.get(final_download_url, allow_redirects=True)
-    
+    # Step 7: Download the file
+    response = requests.get(final_url, headers=headers, allow_redirects=True, stream=True)
+    if response.status_code != 200:
+        raise Exception("Failed to download the APKM file.")
+
     # Save the file
-    download_path = os.path.join('download', 'youtube.apkm')
-    os.makedirs(os.path.dirname(download_path), exist_ok=True)
-    with open(download_path, 'wb') as f:
-        f.write(response.content)
-    
-    print(f"APK downloaded and saved as {download_path}")
+    os.makedirs('download', exist_ok=True)
+    file_path = os.path.join('download', 'youtube.apkm')
+    with open(file_path, 'wb') as file:
+        for chunk in response.iter_content(chunk_size=8192):
+            file.write(chunk)
+
+    print(f"File downloaded successfully and saved as {file_path}")
 
 
 dl_gh("revanced-patches", "inotia00", "latest")
