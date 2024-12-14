@@ -78,30 +78,42 @@ def dl_gh(repo_name, author, tag):
             print(f"\033[93m[?] No release found. Check input\033[0m")
 
 def dl_yt(json_exec):
+    # Load the JSON data from the file
     with open(json_exec, 'r') as file:
         data = json.load(file)
-    highest_version = None
-    for item in data:
-        # Check if compatiblePackages exists and is not None
-        compatible_packages = item.get('compatiblePackages')
-        if compatible_packages:
-            for package in compatible_packages:
-                if package.get('name') == 'com.google.android.youtube':
-                    versions = package.get('versions', [])
-                    if versions:
-                        # Find the highest version
-                        latest_version = max(versions, key=lambda v: tuple(map(int, v.split('.'))))
-                        if highest_version is None or tuple(map(int, latest_version.split('.'))) > tuple(map(int, highest_version.split('.'))):
-                            highest_version = latest_version
     
+    yt_version = None
+    highest_version = None
+
+    def compare_versions(version1, version2):
+        # Split versions by dot and compare numerically
+        v1_parts = [int(x) for x in version1.split('.')]
+        v2_parts = [int(x) for x in version2.split('.')]
+        return (v1_parts > v2_parts) - (v1_parts < v2_parts)
+
+    # Iterate over the entries in the JSON file
+    for item in data:
+        # Ensure that 'compatiblePackages' is a list and exists
+        compatible_packages = item.get("compatiblePackages", [])
+        if isinstance(compatible_packages, list):
+            for package in compatible_packages:
+                if package.get("name") == "com.google.android.youtube":
+                    # Compare versions to find the highest one
+                    for version in package.get("versions", []):
+                        if highest_version is None or compare_versions(version, highest_version) > 0:
+                            highest_version = version
+    
+    # Format the version by replacing '.' with '-'
     if highest_version:
-        # Convert '.' to '-'
         yt_version = highest_version.replace('.', '-')
+
+    # Output the final result
+    if yt_version:
         print(f"yt_version: {yt_version}")
-        return yt_version
     else:
-        print("No compatible package found.")
-        return None
+        print("No compatible version found.")
+    
+    return yt_version
 
 
 dl_gh("revanced-patches", "inotia00", "latest")
