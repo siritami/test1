@@ -80,7 +80,7 @@ def dl_gh(repo_name, author, tag):
 def dl_yt(json_exec):
     """
     Function to extract the highest version for the package 'com.google.android.youtube'
-    from a JSON file and convert the version format.
+    from a JSON file, convert the version format, and download the APK file from APKMirror.
 
     Args:
         json_exec (str): The file path to the JSON file.
@@ -121,13 +121,62 @@ def dl_yt(json_exec):
         if highest_version:
             yt_version = highest_version.replace('.', '-')
 
-        # Display the result
-        print(f"{yt_version=}")
+            # Display the result
+            print(f"{yt_version=}")
+
+            # Load the APKMirror page
+            url = f"https://www.apkmirror.com/apk/google-inc/youtube/youtube-{yt_version}-release/"
+            response = requests.get(url)
+            response.raise_for_status()
+
+            # Parse the page with BeautifulSoup
+            soup = BeautifulSoup(response.text, 'html.parser')
+
+            # Find the link with the BUNDLE class
+            bundle_div = soup.find('div', class_='table-cell rowheight addseparator expand pad dowrap')
+            if bundle_div:
+                bundle_anchor = bundle_div.find('a', class_='accent_color', href=True)
+                if bundle_anchor:
+                    next_url = "https://www.apkmirror.com" + bundle_anchor['href']
+
+                    # Go to the next page
+                    response = requests.get(next_url)
+                    response.raise_for_status()
+                    soup = BeautifulSoup(response.text, 'html.parser')
+
+                    # Find the download button
+                    download_button = soup.find('a', class_='accent_bg btn btn-flat downloadButton Pix', href=True)
+                    if download_button:
+                        final_url = "https://www.apkmirror.com" + download_button['href']
+
+                        # Go to the final download page
+                        response = requests.get(final_url)
+                        response.raise_for_status()
+                        soup = BeautifulSoup(response.text, 'html.parser')
+
+                        # Find the final download link
+                        download_link = soup.find('a', id='download-link', href=True)
+                        if download_link:
+                            download_url = "https://www.apkmirror.com" + download_link['href']
+
+                            # Download the file
+                            download_response = requests.get(download_url, allow_redirects=True)
+                            download_response.raise_for_status()
+
+                            # Save the file
+                            os.makedirs('download', exist_ok=True)
+                            file_path = os.path.join('download', 'youtube.apkm')
+                            with open(file_path, 'wb') as file:
+                                file.write(download_response.content)
+
+                            print(f"File downloaded and saved as {file_path}")
 
     except FileNotFoundError:
         print(f"Error: File '{json_exec}' not found.")
     except json.JSONDecodeError:
         print(f"Error: Failed to parse JSON file '{json_exec}'.")
+    except requests.RequestException as e:
+        print(f"Network error: {e}")
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
 
