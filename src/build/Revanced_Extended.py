@@ -3,6 +3,7 @@ import sys
 import os
 import requests
 import re
+import json
 from bs4 import BeautifulSoup
 
 cli_exec = None
@@ -75,8 +76,6 @@ def dl_gh(repo_name, author, tag):
                     download_file(download_url, file_name, repo_name, author)
         else:
             print(f"\033[93m[?] No release found. Check input\033[0m")
-            
-            
 
 def dl_yt(json_exec):
     # Load JSON data from the provided file
