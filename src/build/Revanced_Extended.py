@@ -100,9 +100,13 @@ def dl_yt(json_exec):
                 if package.get("name") == "com.google.android.youtube":
                     # Compare versions to find the highest one
                     for version in package.get("versions", []):
-                        if highest_version is None or compare_versions(version, highest_version) > 0:
+                        print(f"Checking version: {version}")  # Debugging print
+                        if highest_version is None:
                             highest_version = version
-    
+                        elif compare_versions(version, highest_version) > 0:
+                            print(f"New highest version: {version}")  # Debugging print
+                            highest_version = version
+
     # Format the version by replacing '.' with '-'
     if highest_version:
         yt_version = highest_version.replace('.', '-')
