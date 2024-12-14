@@ -78,45 +78,59 @@ def dl_gh(repo_name, author, tag):
             print(f"\033[93m[?] No release found. Check input\033[0m")
 
 def dl_yt(json_exec):
-    # Load the JSON data from the file
-    with open(json_exec, 'r') as file:
-        data = json.load(file)
-    
+    """
+    Function to extract the highest version for the package 'com.google.android.youtube'
+    from a JSON file and convert the version format.
+
+    Args:
+        json_exec (str): The file path to the JSON file.
+
+    Returns:
+        str: The highest version with dots replaced by dashes, or None if not found.
+    """
     yt_version = None
-    highest_version = None
 
-    def compare_versions(version1, version2):
-        # Split versions by dot and compare numerically
-        v1_parts = [int(x) for x in version1.split('.')]
-        v2_parts = [int(x) for x in version2.split('.')]
-        return (v1_parts > v2_parts) - (v1_parts < v2_parts)
+    try:
+        # Load the JSON data from the file
+        with open(json_exec, 'r') as file:
+            data = json.load(file)
 
-    # Iterate over the entries in the JSON file
-    for item in data:
-        # Ensure that 'compatiblePackages' is a list and exists
-        compatible_packages = item.get("compatiblePackages", [])
-        if isinstance(compatible_packages, list):
+        # Initialize a variable to hold the highest version
+        highest_version = None
+
+        # Iterate through each item in the JSON array
+        for item in data:
+            compatible_packages = item.get("compatiblePackages")
+
+            # Check if compatiblePackages is a valid list
+            if not compatible_packages:
+                continue
+
             for package in compatible_packages:
                 if package.get("name") == "com.google.android.youtube":
-                    # Compare versions to find the highest one
-                    for version in package.get("versions", []):
-                        print(f"Checking version: {version}")  # Debugging print
-                        if highest_version is None:
-                            highest_version = version
-                        elif compare_versions(version, highest_version) > 0:
-                            print(f"New highest version: {version}")  # Debugging print
-                            highest_version = version
+                    versions = package.get("versions", [])
+                    if versions:
+                        # Find the highest version in the current list
+                        current_highest = max(versions, key=lambda v: list(map(int, v.split('.'))))
 
-    # Format the version by replacing '.' with '-'
-    if highest_version:
-        yt_version = highest_version.replace('.', '-')
+                        # Update the overall highest version if needed
+                        if highest_version is None or list(map(int, current_highest.split('.'))) > list(map(int, highest_version.split('.'))):
+                            highest_version = current_highest
 
-    # Output the final result
-    if yt_version:
-        print(f"yt_version: {yt_version}")
-    else:
-        print("No compatible version found.")
-    
+        # Convert the highest version to the desired format if found
+        if highest_version:
+            yt_version = highest_version.replace('.', '-')
+
+        # Display the result
+        print(f"{yt_version=}")
+
+    except FileNotFoundError:
+        print(f"Error: File '{json_exec}' not found.")
+    except json.JSONDecodeError:
+        print(f"Error: Failed to parse JSON file '{json_exec}'.")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+
     return yt_version
 
 
