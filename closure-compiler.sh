@@ -53,7 +53,7 @@ done
 function compile_js() {
   local file=$1
   base=$(basename "$file" .js)
-  eval google-closure-compiler --compilation_level ADVANCED $file --js_output_file js/$base.js
+  eval google-closure-compiler --compilation_level SIMPLE $file --js_output_file js/$base.js
 }
 export -f compile_js
 parallel -j 16 compile_js ::: pr-js/*.js
