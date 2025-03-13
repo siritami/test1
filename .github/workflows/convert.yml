@@ -16,7 +16,7 @@ jobs:
         with:
           node-version: "lts/*"
       - name: Convert
-        run: bash convert.sh
+        run: bash closure-compiler.sh
         env:
           repository: ${{ github.repository }}
       - name: Release
