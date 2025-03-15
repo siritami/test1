@@ -1,0 +1,25 @@
+// ==UserScript==
+// @name         网页访问加速器
+// @name:en      Web Access Accelerator
+// @namespace    https://github.com/xxxily
+// @version      1.0.0
+// @author       ankvps
+// @icon         https://lh3.googleusercontent.com/5b2IeKOldW9hxPQaV7oyRfdAgN2V7Ot1bGcpE4QT5Uq4yt7yNtdgh0ABq4NCEwvsDdEU4HWKVXwUjYuem2JyJ_JrSu8=w128-h128-e365-rj-sc0x00ffffff
+// @match        *://*/*
+// @grant        none
+// @license      Apache License 2.0
+// @run-at       document-start
+// @downloadURL https://raw.githubusercontent.com/siritami/test1/release/release/E7BD91E9A1B5E8AEBFE997AEE58AA0E9809FE599A8.user.js
+// @updateURL https://raw.githubusercontent.com/siritami/test1/release/release/E7BD91E9A1B5E8AEBFE997AEE58AA0E9809FE599A8.meta.js
+// ==/UserScript==
+(function(b){b&&(b.name="quicklink-user-script")})();function e(b){return new Promise(function(d,g,h){(h=new XMLHttpRequest).open("GET",b,h.withCredentials=!0);h.onload=function(){200===h.status?d():g()};h.send()})}
+var n,r=(n=document.createElement("link")).relList&&n.relList.supports&&n.relList.supports("prefetch")?function(b){return new Promise(function(d,g,h){(h=document.createElement("link")).rel="prefetch";h.href=b;h.onload=d;h.onerror=g;document.head.appendChild(h)})}:e,t=window.requestIdleCallback||function(b){var d=Date.now();return setTimeout(function(){b({didTimeout:!1,timeRemaining:function(){return Math.max(0,50-(Date.now()-d))}})},1)},o=new Set,i=new Set,c=!1;
+function a(b){if(b){if(b.saveData)return Error("Save-Data is enabled");if(/2g/.test(b.effectiveType))return Error("network conditions are poor")}return!0}
+function u(b){if(b||={},window.IntersectionObserver){var d=function(p){function l(){k<p&&0<m.length&&(m.shift()(),k++)}p=p||1;var m=[],k=0;return[function(q){1<m.push(q)||l()},function(){k--;l()}]}(b.throttle||1/0),g=d[0],h=d[1],v=b.limit||1/0,z=b.origins||[location.hostname],B=b.ignores||[],C=b.delay||0,w=[];d=b.timeoutFn||t;var x="function"==typeof b.hrefFn&&b.hrefFn,A=b.prerender||!1;c=b.prerenderAndPrefetch||!1;var y=new IntersectionObserver(function(p){p.forEach(function(l){if(l.isIntersecting)w.push((l=
+l.target).href),function(k,q){q?setTimeout(k,q):k()}(function(){-1!==w.indexOf(l.href)&&(y.unobserve(l),(c||A)&&1>i.size?f(x?x(l):l.href).catch(function(k){if(!b.onError)throw k;b.onError(k)}):o.size<v&&!A&&g(function(){s(x?x(l):l.href,b.priority).then(h).catch(function(k){h();b.onError&&b.onError(k)})}))},C);else{var m=w.indexOf((l=l.target).href);-1<m&&w.splice(m)}})},{threshold:b.threshold||0});return d(function(){(b.el||document).querySelectorAll("a").forEach(function(p){z.length&&!z.includes(p.hostname)||
+function q(m,k){return Array.isArray(k)?k.some(function(D){return q(m,D)}):(k.test||k).call(k,m.href,m)}(p,B)||y.observe(p)})},{timeout:b.timeout||2E3}),function(){o.clear();y.disconnect()}}}
+function s(b,d,g){g=a(navigator.connection);return g instanceof Error?Promise.reject(Error("Cannot prefetch, "+g.message)):(0<i.size&&!c&&console.warn("[Warning] You are using both prefetching and prerendering on the same document"),Promise.all([].concat(b).map(function(h){if(!o.has(h))return o.add(h),(d?function(v){return window.fetch?fetch(v,{credentials:"include"}):e(v)}:r)((new URL(h,location.href)).toString())})))}
+function f(b,d){d=a(navigator.connection);if(d instanceof Error)return Promise.reject(Error("Cannot prerender, "+d.message));if(!HTMLScriptElement.supports("speculationrules"))return s(b),Promise.reject(Error("This browser does not support the speculation rules API. Falling back to prefetch."));if(document.querySelector('script[type="speculationrules"]'))return Promise.reject(Error("Speculation Rules is already defined and cannot be altered."));d=0;for(b=[].concat(b);d<b.length;d+=1){var g=b[d];if(window.location.origin!==
+(new URL(g,window.location.href)).origin)return Promise.reject(Error("Only same origin URLs are allowed: "+g));i.add(g)}0<o.size&&!c&&console.warn("[Warning] You are using both prefetching and prerendering on the same document");a:{b=i;d=document.createElement("script");d.type="speculationrules";d.text='{"prerender":[{"source": "list","urls": ["'+Array.from(b).join('","')+'"]}]}';try{document.head.appendChild(d)}catch(h){b=h;break a}b=!0}return!0===b?Promise.resolve():Promise.reject(b)}
+const console$1=window.console,quicklink={listen:u,prefetch:s,prerender:f},ignoresRules={urlPaths:"api, logout, signout, exit, quit, login, logoff, subscribe, subscription, doubleclick, bit.ly, signin, signup, apk, release, amazon, google, shopping, checkout, shop, cart, ads, ticket, captcha",fileExtensions:".zip, .pdf, .mp4, .webm, .mp3, .mov, .rar, .apk, .tar, .doc, .docx, .xls, .xlsx, .ppt, .pptx",urlProtocols:"http:, tel:, mailto:, javascript:, market:"};
+Object.keys(ignoresRules).forEach(b=>{const d=ignoresRules[b].split(",");ignoresRules[b]=d.map(g=>g.trim())});function ignoreFunc(b,d){(d=ignoresRules.urlPaths.some(g=>b.includes(`/${g}/`))||ignoresRules.fileExtensions.some(g=>b.includes(g))||ignoresRules.urlProtocols.some(g=>b.startsWith(g)))&&console$1.log("[Quicklink][Ignore]",b);return d}window.addEventListener("load",()=>{quicklink.listen({ignores:[ignoreFunc]})});

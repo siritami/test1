@@ -1,0 +1,71 @@
+// ==UserScript==
+// @name         Return YouTube Dislike
+// @namespace    https://www.returnyoutubedislike.com/
+// @homepage     https://www.returnyoutubedislike.com/
+// @version      3.1.5
+// @encoding     utf-8
+// @icon         https://github.com/Anarios/return-youtube-dislike/raw/main/Icons/Return%20Youtube%20Dislike%20-%20Transparent.png
+// @author       Anarios & JRWR
+// @match        *://*.youtube.com/*
+// @exclude      *://music.youtube.com/*
+// @exclude      *://*.music.youtube.com/*
+// @compatible   chrome
+// @compatible   firefox
+// @compatible   opera
+// @compatible   safari
+// @compatible   edge
+// @downloadURL https://raw.githubusercontent.com/siritami/test1/release/release/Return20Youtube20Dislike.user.js
+// @updateURL https://raw.githubusercontent.com/siritami/test1/release/release/Return20Youtube20Dislike.meta.js
+// @grant        GM.xmlHttpRequest
+// @connect      youtube.com
+// @grant        GM_addStyle
+// @run-at       document-end
+// ==/UserScript==
+const extConfig={showUpdatePopup:!1,disableVoteSubmission:!1,disableLogging:!0,coloredThumbs:!1,coloredBar:!1,colorTheme:"classic",numberDisplayFormat:"compactShort",numberDisplayRoundDown:!0,tooltipPercentageMode:"none",numberDisplayReformatLikes:!1,rateBarEnabled:!1},LIKED_STATE="LIKED_STATE",DISLIKED_STATE="DISLIKED_STATE",NEUTRAL_STATE="NEUTRAL_STATE";
+let previousState=3,likesvalue=0,dislikesvalue=0,preNavigateLikeButton=null,isMobile="m.youtube.com"==location.hostname,isShorts=()=>location.pathname.startsWith("/shorts"),mobileDislikes=0;function cLog(a,b=""){extConfig.disableLogging||(b=""===b.trim()?"":`(${b})`,console.log(`[Return YouTube Dislikes] ${a} ${b}`))}
+function isInViewport(a){a=a.getBoundingClientRect();const b=innerHeight||document.documentElement.clientHeight,c=innerWidth||document.documentElement.clientWidth;return!(0==a.top&&0==a.left&&0==a.bottom&&0==a.right)&&0<=a.top&&0<=a.left&&a.bottom<=b&&a.right<=c}
+function getButtons(){if(isShorts()){let a=document.querySelectorAll(isMobile?"ytm-like-button-renderer":"#like-button > ytd-like-button-renderer");for(let b of a)if(isInViewport(b))return b}return isMobile?document.querySelector(".slim-video-action-bar-actions .segmented-buttons")??document.querySelector(".slim-video-action-bar-actions"):null===document.getElementById("menu-container")?.offsetParent?document.querySelector("ytd-menu-renderer.ytd-watch-metadata > div")??document.querySelector("ytd-menu-renderer.ytd-video-primary-info-renderer > div"):
+document.getElementById("menu-container")?.querySelector("#top-level-buttons-computed")}
+function getDislikeButton(){if("YTD-SEGMENTED-LIKE-DISLIKE-BUTTON-RENDERER"===getButtons().children[0].tagName)return void 0===getButtons().children[0].children[1]?document.querySelector("#segmented-dislike-button"):getButtons().children[0].children[1];if(getButtons().querySelector("segmented-like-dislike-button-view-model")){const a=getButtons().querySelector("dislike-button-view-model");a||cLog("Dislike button wasn't added to DOM yet...");return a}return getButtons().children[1]}
+function getLikeButton(){return"YTD-SEGMENTED-LIKE-DISLIKE-BUTTON-RENDERER"===getButtons().children[0].tagName?null!==document.querySelector("#segmented-like-button")?document.querySelector("#segmented-like-button"):getButtons().children[0].children[0]:getButtons().querySelector("like-button-view-model")??getButtons().children[0]}
+function getLikeTextContainer(){return getLikeButton().querySelector("#text")??getLikeButton().getElementsByTagName("yt-formatted-string")[0]??getLikeButton().querySelector("span[role='text']")}
+function getDislikeTextContainer(){const a=getDislikeButton();var b=a?.querySelector("#text")??a?.getElementsByTagName("yt-formatted-string")[0]??a?.querySelector("span[role='text']");null===b&&(b=document.createElement("span"),b.id="text",b.style.marginLeft="6px",a?.querySelector("button").appendChild(b),a&&(a.querySelector("button").style.width="auto"));return b}
+function createObserver(a,b){const c={};c.options=a;c.observer=new MutationObserver(b);c.observe=function(d){this.observer.observe(d,this.options)};c.disconnect=function(){this.observer.disconnect()};return c}let shortsObserver=null;
+isShorts()&&!shortsObserver&&(cLog("Initializing shorts mutation observer"),shortsObserver=createObserver({attributes:!0},a=>{a.forEach(b=>{"attributes"===b.type&&"TP-YT-PAPER-BUTTON"===b.target.nodeName&&"button"===b.target.id?(cLog("Short thumb button status changed"),"true"===b.target.getAttribute("aria-pressed")?b.target.style.color="like-button"===b.target.parentElement.parentElement.id?getColorFromTheme(!0):getColorFromTheme(!1):b.target.style.color="unset"):cLog("Unexpected mutation observer event: "+
+b.target+b.type)})}));function isVideoLiked(){return isMobile?"true"==getLikeButton().querySelector("button").getAttribute("aria-label"):getLikeButton().classList.contains("style-default-active")}function isVideoDisliked(){return isMobile?"true"==getDislikeButton()?.querySelector("button").getAttribute("aria-label"):getDislikeButton()?.classList.contains("style-default-active")}function isVideoNotLiked(){return isMobile?!isVideoLiked():getLikeButton().classList.contains("style-text")}
+function isVideoNotDisliked(){return isMobile?!isVideoDisliked():getDislikeButton()?.classList.contains("style-text")}function checkForUserAvatarButton(){if(!isMobile)return document.querySelector("#avatar-btn")?!0:!1}function getState(){return isVideoLiked()?LIKED_STATE:isVideoDisliked()?DISLIKED_STATE:NEUTRAL_STATE}function setLikes(a){isMobile?getButtons().children[0].querySelector(".button-renderer-text").innerText=a:getLikeTextContainer().innerText=a}
+function setDislikes(a){if(isMobile)mobileDislikes=a;else{var b=getDislikeTextContainer();b?.removeAttribute("is-empty");b?.innerText!==a&&(b.innerText=a)}}function getLikeCountFromButton(){try{if(isShorts())return!1;let a=(getLikeButton().querySelector("yt-formatted-string#text")??getLikeButton().querySelector("button")).getAttribute("aria-label").replace(/\D/g,"");return 0<a.length?parseInt(a):!1}catch{return!1}}
+("undefined"!=typeof GM_addStyle?GM_addStyle:a=>{let b=document.createElement("style");b.type="text/css";b.innerText=a;document.head.appendChild(b)})("\n    #return-youtube-dislike-bar-container {\n      background: var(--yt-spec-icon-disabled);\n      border-radius: 2px;\n    }\n\n    #return-youtube-dislike-bar {\n      background: var(--yt-spec-text-primary);\n      border-radius: 2px;\n      transition: all 0.15s ease-in-out;\n    }\n\n    .ryd-tooltip {\n      position: absolute;\n      display: block;\n      height: 2px;\n      bottom: -10px;\n    }\n\n    .ryd-tooltip-bar-container {\n      width: 100%;\n      height: 2px;\n      position: absolute;\n      padding-top: 6px;\n      padding-bottom: 12px;\n      top: -6px;\n    }\n\n    ytd-menu-renderer.ytd-watch-metadata {\n      overflow-y: visible !important;\n    }\n    \n    #top-level-buttons-computed {\n      position: relative !important;\n    }\n  ");
+function createRateBar(a,b){if(!isMobile&&extConfig.rateBarEnabled){var c=document.getElementById("return-youtube-dislike-bar-container"),d=getLikeButton().clientWidth+(getDislikeButton()?.clientWidth??52),e=0<a+b?a/(a+b)*100:50,f=parseFloat(e.toFixed(1)),g=(100-f).toLocaleString();f=f.toLocaleString();switch(extConfig.tooltipPercentageMode){case "dash_like":a=`${a.toLocaleString()}&nbsp;/&nbsp;${b.toLocaleString()}&nbsp;&nbsp;-&nbsp;&nbsp;${f}%`;break;case "dash_dislike":a=`${a.toLocaleString()}&nbsp;/&nbsp;${b.toLocaleString()}&nbsp;&nbsp;-&nbsp;&nbsp;${g}%`;
+break;case "both":a=`${f}%&nbsp;/&nbsp;${g}%`;break;case "only_like":a=`${f}%`;break;case "only_dislike":a=`${g}%`;break;default:a=`${a.toLocaleString()}&nbsp;/&nbsp;${b.toLocaleString()}`}c||isMobile?(document.querySelector(".ryd-tooltip").style.width=d+"px",document.getElementById("return-youtube-dislike-bar").style.width=e+"%",extConfig.coloredBar&&(document.getElementById("return-youtube-dislike-bar-container").style.backgroundColor=getColorFromTheme(!1),document.getElementById("return-youtube-dislike-bar").style.backgroundColor=
+getColorFromTheme(!0))):(c="",extConfig.coloredBar&&(getColorFromTheme(!0),c="; background-color: "+getColorFromTheme(!1)),getButtons().insertAdjacentHTML("beforeend",`
+        <div class="ryd-tooltip" style="width: ${d}px">
+        <div class="ryd-tooltip-bar-container">
+           <div
+              id="return-youtube-dislike-bar-container"
+              style="width: 100%; height: 2px;${c}"
+              >
+              <div
+                 id="return-youtube-dislike-bar"
+                 style="width: ${e}%; height: 100%${c}"
+                 ></div>
+           </div>
+        </div>
+        <tp-yt-paper-tooltip position="top" id="ryd-dislike-tooltip" class="style-scope ytd-sentiment-bar-renderer" role="tooltip" tabindex="-1">
+           <!--css-build:shady-->${a}
+        </tp-yt-paper-tooltip>
+        </div>
+`),d=document.getElementById("top-row"),d.style.borderBottom="1px solid var(--yt-spec-10-percent-layer)",d.style.paddingBottom="10px")}}
+function setState(){cLog("Fetching votes...");fetch(`https://returnyoutubedislikeapi.com/votes?videoId=${getVideoId()}`).then(a=>{a.json().then(b=>{if(b&&!("traceId"in a)){const {dislikes:d,likes:e}=b;cLog(`Received count: ${d}`);likesvalue=e;dislikesvalue=d;setDislikes(numberFormat(d));!0===extConfig.numberDisplayReformatLikes&&(b=getLikeCountFromButton(),!1!==b&&setLikes(numberFormat(b)));createRateBar(e,d);if(!0===extConfig.coloredThumbs){var c=getDislikeButton();isShorts()?(b=getLikeButton().querySelector("tp-yt-paper-button#button"),
+c=c?.querySelector("tp-yt-paper-button#button"),"true"===b.getAttribute("aria-pressed")&&(b.style.color=getColorFromTheme(!0)),c&&"true"===c.getAttribute("aria-pressed")&&(c.style.color=getColorFromTheme(!1)),shortsObserver.observe(b),shortsObserver.observe(c)):(getLikeButton().style.color=getColorFromTheme(!0),c&&(c.style.color=getColorFromTheme(!1)))}}})})}function updateDOMDislikes(){setDislikes(numberFormat(dislikesvalue));createRateBar(likesvalue,dislikesvalue)}
+function likeClicked(){if(1==checkForUserAvatarButton()&&(1==previousState?(likesvalue--,updateDOMDislikes(),previousState=3):2==previousState?(likesvalue++,dislikesvalue--,updateDOMDislikes(),previousState=1):3==previousState&&(likesvalue++,updateDOMDislikes(),previousState=1),!0===extConfig.numberDisplayReformatLikes)){const a=getLikeCountFromButton();!1!==a&&setLikes(numberFormat(a))}}
+function dislikeClicked(){if(1==checkForUserAvatarButton())if(3==previousState)dislikesvalue++,updateDOMDislikes(),previousState=2;else if(2==previousState)dislikesvalue--,updateDOMDislikes(),previousState=3;else if(1==previousState&&(likesvalue--,dislikesvalue++,updateDOMDislikes(),previousState=2,!0===extConfig.numberDisplayReformatLikes)){const a=getLikeCountFromButton();!1!==a&&setLikes(numberFormat(a))}}function setInitialState(){setState()}
+function getVideoId(){const a=new URL(window.location.href),b=a.pathname;return b.startsWith("/clip")?(document.querySelector("meta[itemprop='videoId']")||document.querySelector("meta[itemprop='identifier']")).content:b.startsWith("/shorts")?b.slice(8):a.searchParams.get("v")}
+function isVideoLoaded(){if(isMobile)return"false"==document.getElementById("player").getAttribute("loading");const a=getVideoId();return null!==document.querySelector(`ytd-watch-grid[video-id='${a}']`)||null!==document.querySelector(`ytd-watch-flexy[video-id='${a}']`)||null!==document.querySelector('#player[loading="false"]:not([hidden])')}function roundDown(a){if(1E3>a)return a;var b=Math.floor(Math.log10(a)-2);b+=b%3?1:0;return Math.floor(a/10**b)*10**b}
+function numberFormat(a){a=!1===extConfig.numberDisplayRoundDown?a:roundDown(a);return getNumberFormatter(extConfig.numberDisplayFormat).format(a)}
+function getNumberFormatter(a){let b;if(document.documentElement.lang)b=document.documentElement.lang;else if(navigator.language)b=navigator.language;else try{b=(new URL(Array.from(document.querySelectorAll("head > link[rel='search']"))?.find(d=>d?.getAttribute("href")?.includes("?locale="))?.getAttribute("href")))?.searchParams?.get("locale")}catch{cLog("Cannot find browser locale. Use en as default for number formatting."),b="en"}let c;switch(a){case "compactLong":a="compact";c="long";break;case "standard":a=
+"standard";c="short";break;default:a="compact",c="short"}return Intl.NumberFormat(b,{notation:a,compactDisplay:c})}function getColorFromTheme(a){switch(extConfig.colorTheme){case "accessible":a=!0===a?"dodgerblue":"gold";break;case "neon":a=!0===a?"aqua":"magenta";break;default:a=!0===a?"lime":"red"}return a}let smartimationObserver=null;
+function setEventListeners(a){let b;cLog("Setting up...");b=setInterval(function(){if(isShorts()||getButtons()?.offsetParent&&isVideoLoaded()){const c=getButtons(),d=getDislikeButton();if(preNavigateLikeButton!==getLikeButton()&&d){cLog("Registering button listeners...");try{getLikeButton().addEventListener("click",likeClicked);d?.addEventListener("click",dislikeClicked);getLikeButton().addEventListener("touchstart",likeClicked);d?.addEventListener("touchstart",dislikeClicked);d?.addEventListener("focusin",
+updateDOMDislikes);d?.addEventListener("focusout",updateDOMDislikes);preNavigateLikeButton=getLikeButton();smartimationObserver||(smartimationObserver=createObserver({attributes:!0,subtree:!0,childList:!0},updateDOMDislikes),smartimationObserver.container=null);const e=c.querySelector("yt-smartimation");e&&smartimationObserver.container!=e&&(cLog("Initializing smartimation mutation observer"),smartimationObserver.disconnect(),smartimationObserver.observe(e),smartimationObserver.container=e)}catch{return}}d&&
+(setInitialState(),clearInterval(b))}},111)}(function(){window.addEventListener("yt-navigate-finish",setEventListeners,!0);setEventListeners()})();
+if(isMobile){let a=history.pushState;history.pushState=function(...b){window.returnDislikeButtonlistenersSet=!1;setEventListeners(b[2]);return a.apply(history,b)};setInterval(()=>{const b=getDislikeButton();null===b?.querySelector(".button-renderer-text")?getDislikeTextContainer().innerText=mobileDislikes:b&&(b.querySelector(".button-renderer-text").innerText=mobileDislikes)},1E3)};
