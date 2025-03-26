@@ -40,5 +40,5 @@ jobs:
             *aligned-debugSigned.apk
           name: SDCard Patch
           tag: download
-          body: "Download Here"
+          body: "Download appk.apk file below"
           allowUpdates: true
