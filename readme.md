@@ -46,4 +46,4 @@
 
 4. Now wait for 2-3 minutes for format your SD Card
  
-Note: In some rom like MIUI, HyperOS... need enable `USB debugging (Security settings)` to use `adb shell` (inside developer's options menu)
+**Note:** In some rom like MIUI, HyperOS... need enable `USB debugging (Security settings)` to use `adb shell` (inside developer's options menu)
