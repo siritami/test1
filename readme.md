@@ -30,7 +30,7 @@
 
 9. Choose your suite command this step:
 
-	Format all your SD Card as internal storage:
+	Format all capacity your SD Card as Internal storage:
 	
     `sm partition disk:181,49 private`
 	
@@ -39,6 +39,10 @@
 	Example: You want 60% of SD Card capacity to Internal storage and 40% capacity External storage
 	
     `sm partition disk:181,49 mixed 60`
+	
+	But when you need rollback to default state SD Card all capacity your SD Card as External storage
+	
+	`sm partition disk:181,49 public`
 
 4. Now wait for 2-3 minutes for format your SD Card
  
