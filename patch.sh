@@ -22,11 +22,12 @@ red_log() {
 
 # Change AndroidManifest follow https://developer.android.com/guide/topics/data/install-location
 edit_AndroidManifest() {
-    local file="app/AndroidManifest.xml"
+    local file="$1/AndroidManifest.xml"
     sed -i -E 's/[a-zA-Z0-9_]+:installLocation="(internalOnly|auto)"//g' "$file"
     sed -i -E '0,/(xmlns:([a-zA-Z0-9_]+)="http:\/\/schemas\.android\.com\/apk\/res\/android")/ {
     s/(xmlns:([a-zA-Z0-9_]+)="http:\/\/schemas\.android\.com\/apk\/res\/android")/\1 \2:installLocation="preferExternal"/
     }' "$file"
+	head -n 10 "$file"
 }
 
 if [ $file_type == "APK" ]; then
