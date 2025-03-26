@@ -12,6 +12,9 @@ APKTool="APKTool.jar"
 wget -q -O Uber.jar https://github.com/patrickfav/uber-apk-signer/releases/download/v1.3.0/uber-apk-signer-1.3.0.jar
 Uber="Uber.jar"
 
+echo "HERE file type: $file_type"
+echo "HERE url: $APK_URL"
+
 # Colored output logs
 green_log() {
     echo -e "\e[32m$1\e[0m"
