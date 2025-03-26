@@ -20,8 +20,8 @@ jobs:
     name: APK to SDCard
     runs-on: ubuntu-latest
     env:
-      APK_URL: env.APK_URL
-      file_type: env.file_type
+      APK_URL: ${{ env.APK_URL }}
+      file_type: ${{ env.file_type }}
       repository: ${{ github.repository }}
     steps:
       - name: Checkout
