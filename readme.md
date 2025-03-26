@@ -15,14 +15,15 @@
 8. Type `sm list-disks`. Find disk uuid, example: `disk:181,49`
 > [!IMPORTANT]
 > Internal storage is place you can install your apps here.
-> *Warning:* You can't browser Internal storage partition from your File explorer.
+> **Warning:** You can't browser Internal storage partition from your File explorer.
 > External storage is place you store your files (images, music, documents...).
 9. Choose your suite command this step:
-    ```bash
-    sm partition disk:181,49 private # only as internal storage
-    sm partition disk:181,49 public # only as external storage
-    sm partition disk:181,49 mixed 60 # only 60% as internal and rest 40% as external
-    ```
+	Format all your SD Card as internal storage:
+    `sm partition disk:181,49 private`
+	Format your SD Card to two partition Internal storage and External storage:
+	Example: You want 60% of SD Card capacity to Internal storage and 40% capacity External storage
+    `sm partition disk:181,49 mixed 60`
+
 4. Now wait for 2-3 minutes for format your SD Card
  
 Note: In some rom like MIUI, HyperOS... need enable `USB debugging (Security settings)` to use `adb shell` (inside developer's options menu)
