@@ -7,7 +7,7 @@ on:
         description: 'Direct link apk need to patch'
         required: true
         default: ''
-      File_type:
+      file_type:
         description: 'APK or Splits APK?'
         required: true
         default: 'APK'
@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       APK_URL: env.APK_URL
-      File_type: env.File_type
+      file_type: env.file_type
       repository: ${{ github.repository }}
     steps:
       - name: Checkout
