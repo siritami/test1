@@ -23,7 +23,9 @@
 
 > [!IMPORTANT]
 > Internal storage is place you can install your apps here.
+> 
 > **Warning:** You can't browser Internal storage partition from your File explorer.
+> 
 > External storage is place you store your files (images, music, documents...).
 
 9. Choose your suite command this step:
