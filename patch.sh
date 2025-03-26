@@ -25,7 +25,7 @@ edit_AndroidManifest() {
   local file="$1/AndroidManifest.xml"
   sed -i 's/android:installLocation="internalOnly"//g' "$file"
   sed -i 's/android:installLocation="auto"//g' "$file"
-  sed -i '0,/<manifest/ s//<manifest android:installLocation="preferExternal"/' "$file"
+  sed -i '0,/package="[^"]*"/ s//& android:installLocation="preferExternal"/' "$file"
   echo "Updated AndroidManifest.xml (First 4 lines):"
   head -n 4 "$file"
 }
