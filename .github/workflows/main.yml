@@ -1,0 +1,35 @@
+name: APK to SDCard
+permissions: write-all
+on:
+  workflow_dispatch:
+    inputs:
+      APK_URL:
+        description: 'Direct link apk need to patch'
+        required: true
+        default: ''
+jobs:
+  APK_to_SDCard:
+    name: APK to SDCard
+    runs-on: ubuntu-latest
+    env:
+      APK_URL: env.APK_URL
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.1.1
+      - name: Set up JDK
+        uses: actions/setup-java@v4.5.0
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+      - name: Patch APK
+        run: bash patch.sh
+      - name: Release
+        uses: ncipollo/release-action@v1.14.0
+        with:
+          artifacts: |
+            *aligned-debugSigned.apk
+          name: SDCard Patch
+          tag: download
+          body: "Download Here"
+          allowUpdates: true
+          
