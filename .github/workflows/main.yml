@@ -7,12 +7,22 @@ on:
         description: 'Direct link apk need to patch'
         required: true
         default: ''
+      File_type:
+        description: 'APK or Splits APK?'
+        required: true
+        default: 'APK'
+        type: choice
+        options:
+          - 'APK'
+          - 'Splits_APK'
 jobs:
   APK_to_SDCard:
     name: APK to SDCard
     runs-on: ubuntu-latest
     env:
       APK_URL: env.APK_URL
+      File_type: env.File_type
+      repository: ${{ github.repository }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4.1.1
@@ -32,4 +42,3 @@ jobs:
           tag: download
           body: "Download Here"
           allowUpdates: true
-          
