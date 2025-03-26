@@ -5,7 +5,7 @@ on:
     inputs:
       APK_URL:
         description: 'Direct link apk need to patch'
-        required: true
+        required: false
         default: ''
       file_type:
         description: 'APK or Splits APK?'
