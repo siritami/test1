@@ -39,7 +39,7 @@ else
 fi
 
 # Download APK/APKM file
-if [ $APK_URL == "upload" ]; then
+if [ $APK_URL == "" ]; then
 	wget -q -O app.$file_ext_dl https://github.com/$repository/releases/download/upload/app.$file_ext_dl
 	if [ -z "app.$file_ext_dl" ]; then
 		red_log "[-] Failed to download file from your repository release, make sure your apk file you upload name app.$file_ext_dl and tag release is 'upload'"
