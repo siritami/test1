@@ -14,7 +14,7 @@ on:
         type: choice
         options:
           - 'APK'
-          - 'Splits_APK'
+          - 'Splits APK'
 jobs:
   APK_to_SDCard:
     name: APK to SDCard
