@@ -26,6 +26,8 @@ edit_AndroidManifest() {
   sed -i 's/android:installLocation="internalOnly"//g' "$file"
   sed -i 's/android:installLocation="auto"//g' "$file"
   sed -i '0,/\(xmlns:android="http:\/\/schemas.android.com\/apk\/res\/android"\)/ s//\1 android:installLocation="preferExternal"/' "$file"
+  echo "Updated AndroidManifest.xml (First 4 lines):"
+  head -n 4 "$file"
 }
 
 if [ $file_type == "APK" ]; then
