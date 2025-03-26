@@ -12,9 +12,6 @@ APKTool="APKTool.jar"
 wget -q -O Uber.jar https://github.com/patrickfav/uber-apk-signer/releases/download/v1.3.0/uber-apk-signer-1.3.0.jar
 Uber="Uber.jar"
 
-echo "HERE file type: $file_type"
-echo "HERE url: $APK_URL"
-
 # Colored output logs
 green_log() {
     echo -e "\e[32m$1\e[0m"
@@ -23,6 +20,7 @@ red_log() {
     echo -e "\e[31m$1\e[0m"
 }
 
+# Change AndroidManifest follow https://developer.android.com/guide/topics/data/install-location
 edit_AndroidManifest() {
   local file="$1/AndroidManifest.xml"
   sed -i 's/android:installLocation="internalOnly"//g' "$file"
@@ -37,6 +35,8 @@ else
 	file_ext_dl="apkm"
 	split_apk="1"
 fi
+
+# Download APK/APKM file
 if [ $APK_URL == "upload" ]; then
 	wget -q -O app.$file_ext_dl https://github.com/$repository/releases/download/upload/app.$file_ext_dl
 	if [ -z "app.$file_ext_dl" ]; then
@@ -50,6 +50,8 @@ else
 		exit 0
 	fi
 fi
+
+# Patching And Signing file
 if [ $split_apk == "1" ]; then
 	green_log "[+] Merging splits apk to standalone apk"
 	java -jar $APKEditor m -i app.$file_ext_dl
