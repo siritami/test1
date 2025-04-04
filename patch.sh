@@ -30,14 +30,6 @@ edit_AndroidManifest() {
 	head -n 10 "$file"
 }
 
-if [ $file_type == "APK" ]; then
-	file_ext_dl="apk"
-	split_apk="0"
-else
-	file_ext_dl="apkm"
-	split_apk="1"
-fi
-
 # Download APK/APKM file
 if [ $APK_URL -z ]; then
 	green_log "[+] Downloading file from your file upload to release"
