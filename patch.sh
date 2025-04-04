@@ -31,7 +31,7 @@ edit_AndroidManifest() {
 }
 
 # Download APK/APKM file
-if [ $APK_URL -z ]; then
+if [ -z "$APK_URL" ]; then
 	green_log "[+] Downloading file from your file upload to release"
 	wget -q -O app.$file_ext_dl https://github.com/$repository/releases/download/upload/app.$file_ext_dl
 	if [ -z "app.$file_ext_dl" ]; then
@@ -48,7 +48,7 @@ else
 fi
 
 # Patching And Signing file
-if [ $split_apk == "1" ]; then
+if [ "$split_apk" == "1" ]; then
 	green_log "[+] Merging splits apk to standalone apk"
 	java -jar $APKEditor m -i app.$file_ext_dl
 	green_log "[+] Decrypting apk file"
