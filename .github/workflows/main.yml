@@ -10,18 +10,14 @@ on:
       file_type:
         description: 'APK or Splits APK?'
         required: true
-        default: 'APK'
-        type: choice
-        options:
-          - 'APK'
-          - 'Splits APK'
+        default: 'apk'
 jobs:
   APK_to_SDCard:
     name: APK to SDCard
     runs-on: ubuntu-latest
     env:
       APK_URL: ${{ github.event.inputs.APK_URL }}
-      file_type: ${{ github.event.inputs.file_type }}
+      file_ext_dl: ${{ github.event.inputs.file_type }}
       repository: ${{ github.repository }}
     steps:
       - name: Checkout
